@@ -51,7 +51,7 @@ export function AppSidebar() {
           </div>
           <div>
             <p className="text-sm font-semibold text-white">RGM Platform</p>
-            <p className="text-xs text-sidebar-foreground/50">Analytics</p>
+            <p className="text-xs text-sidebar-foreground/50">AI-driven RGM</p>
           </div>
         </div>
       </div>

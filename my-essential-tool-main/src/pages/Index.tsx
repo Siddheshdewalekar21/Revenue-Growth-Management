@@ -56,10 +56,10 @@ const Index = () => {
   }));
 
   const modules = [
-    { title: "Pricing", desc: "Optimize pricing with elasticity insights", icon: DollarSign, to: "/pricing", color: "bg-primary/10 text-primary" },
-    { title: "Promotions", desc: "Simulate and compare promo scenarios", icon: TrendingUp, to: "/promotions", color: "bg-[hsl(var(--secondary))]/10 text-[hsl(var(--secondary))]" },
-    { title: "Assortment", desc: "SKU-level performance and recommendations", icon: Package, to: "/assortment", color: "bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]" },
-    { title: "Forecasting", desc: "AI-driven demand predictions", icon: LineChart, to: "/forecasting", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
+    { title: "Pricing", desc: "AI insight, elasticity, and competitive intelligence", icon: DollarSign, to: "/pricing", color: "bg-primary/10 text-primary" },
+    { title: "Promotions", desc: "AI recommendation, scenarios, and upcoming events", icon: TrendingUp, to: "/promotions", color: "bg-[hsl(var(--secondary))]/10 text-[hsl(var(--secondary))]" },
+    { title: "Assortment", desc: "AI-driven SKU and channel recommendations", icon: Package, to: "/assortment", color: "bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]" },
+    { title: "Forecasting", desc: "ML demand predictions (optional Use ML model)", icon: LineChart, to: "/forecasting", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
   ];
 
   const chartConfig = {
@@ -70,7 +70,7 @@ const Index = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Executive Overview</h1>
-        <p className="text-muted-foreground">Revenue growth performance across all modules</p>
+        <p className="text-muted-foreground">AI-driven RGM: optimize pricing, promotions, assortment, and revenue strategy with ML</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, BarChart, Bar } from "recharts";
-import { DollarSign, TrendingUp, Percent, Target } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Percent, Target } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
@@ -28,9 +28,25 @@ const Pricing = () => {
     },
   });
 
+  const { data: pricingInsight } = useQuery({
+    queryKey: ["pricing-insight"],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE_URL}/api/pricing/insight`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  const pricingInsightIsMl = pricingInsight?.source === "ml_model";
+  const pricingRecommendationMap = new Map(
+    ((pricingInsight?.recommendations as any[]) || []).map((r) => [String(r.product_id), r])
+  );
+
   const avgPrice = products?.length ? (products.reduce((s, p) => s + Number(p.current_price), 0) / products.length).toFixed(2) : "0.00";
   const avgMargin = products?.length ? (products.reduce((s, p) => s + Number(p.margin_pct || 0), 0) / products.length).toFixed(1) : "0.0";
   const totalRevenue = pricingRecords?.length ? pricingRecords.reduce((s, r) => s + Number(r.revenue || 0), 0) : 0;
+  const totalNetProfit = pricingRecords?.length ? pricingRecords.reduce((s, r) => s + Number(r.net_profit || 0), 0) : 0;
+  const totalLoss = pricingRecords?.length ? pricingRecords.reduce((s, r) => s + Number(r.loss_amount || r.total_loss || 0), 0) : 0;
   const avgPriceIndex = pricingRecords?.length ? (pricingRecords.reduce((s, r) => s + Number(r.price_index || 0), 0) / pricingRecords.length).toFixed(1) : "0.0";
 
   // Elasticity chart data
@@ -57,15 +73,43 @@ const Pricing = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Pricing Dashboard</h1>
-        <p className="text-muted-foreground">Price optimization and competitive intelligence</p>
+        <p className="text-muted-foreground">AI-driven pricing insight, elasticity, and competitive intelligence</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KPICard title="Avg Price" value={`$${avgPrice}`} change="+2.3% vs Q3" changeType="positive" icon={DollarSign} />
         <KPICard title="Avg Margin" value={`${avgMargin}%`} change="+1.1pp" changeType="positive" icon={Percent} />
         <KPICard title="Revenue" value={`$${(totalRevenue / 1000000).toFixed(1)}M`} change="+8.7% MoM" changeType="positive" icon={TrendingUp} />
+        <KPICard title="Net Profit" value={`$${(totalNetProfit / 1000000).toFixed(1)}M`} change="After losses" changeType="positive" icon={DollarSign} />
+        <KPICard title="Loss" value={`$${(totalLoss / 1000).toFixed(0)}K`} change="Returns/shrinkage" changeType="negative" icon={TrendingDown} />
         <KPICard title="Price Index" value={`${avgPriceIndex}`} change="vs competitors" changeType="neutral" icon={Target} />
       </div>
+
+      {pricingInsight?.insight && (
+        <Card className="glass-card border-primary/20 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">AI insight</CardTitle>
+            <CardDescription>
+              {pricingInsightIsMl
+                ? `ML pricing model (${pricingInsight?.model_type || "model"}) trained on ${pricingInsight?.training_samples ?? 0} records`
+                : "Data-driven pricing view from our backend"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-foreground">{pricingInsight.insight}</p>
+            {pricingInsightIsMl && (
+              <>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Train MAE: {pricingInsight?.train_mae_units ?? "n/a"} | Train R2: {pricingInsight?.train_r2_units ?? "n/a"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Historical profit: ${Number(pricingInsight?.historical_total_profit || 0).toFixed(0)} | Historical loss: ${Number(pricingInsight?.historical_total_loss || 0).toFixed(0)}
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="glass-card">
@@ -122,24 +166,35 @@ const Pricing = () => {
                 <TableHead className="text-right">Competitor</TableHead>
                 <TableHead className="text-right">Margin</TableHead>
                 <TableHead className="text-right">Elasticity</TableHead>
+                <TableHead className="text-right">Net Profit (Rec)</TableHead>
+                <TableHead className="text-right">Loss (Rec)</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products?.map((p) => {
-                const diff = p.recommended_price && p.current_price ? Number(p.recommended_price) - Number(p.current_price) : 0;
+              {products?.map((p: any) => {
+                const rec = pricingRecommendationMap.get(String(p._id || p.id));
+                const currentPrice = Number(p.current_price || 0);
+                const recommendedPrice = Number(rec?.recommended_price ?? p.recommended_price ?? currentPrice);
+                const diff = recommendedPrice - currentPrice;
+                const action =
+                  rec?.action || (diff > 0 ? "increase" : diff < 0 ? "decrease" : "hold");
+                const predictedNetProfit = Number(rec?.predicted_net_profit_recommended ?? rec?.predicted_profit_recommended ?? 0);
+                const predictedLoss = Number(rec?.predicted_loss_recommended ?? 0);
                 return (
-                  <TableRow key={p.id}>
+                  <TableRow key={p._id || p.id}>
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell>{p.category}</TableCell>
-                    <TableCell className="text-right font-mono">${Number(p.current_price).toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-mono">${Number(p.recommended_price || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">${currentPrice.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">${recommendedPrice.toFixed(2)}</TableCell>
                     <TableCell className="text-right font-mono">${Number(p.competitor_price || 0).toFixed(2)}</TableCell>
                     <TableCell className="text-right font-mono">{Number(p.margin_pct || 0).toFixed(1)}%</TableCell>
                     <TableCell className="text-right font-mono">{Number(p.price_elasticity || 0).toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">{rec ? `$${predictedNetProfit.toFixed(0)}` : "—"}</TableCell>
+                    <TableCell className="text-right font-mono text-destructive">{rec ? `$${predictedLoss.toFixed(0)}` : "—"}</TableCell>
                     <TableCell>
-                      <Badge variant={diff > 0 ? "default" : diff < 0 ? "secondary" : "outline"}>
-                        {diff > 0 ? "Increase" : diff < 0 ? "Decrease" : "Hold"}
+                      <Badge variant={action === "increase" ? "default" : action === "decrease" ? "secondary" : "outline"}>
+                        {action === "increase" ? "Increase" : action === "decrease" ? "Decrease" : "Hold"}
                       </Badge>
                     </TableCell>
                   </TableRow>

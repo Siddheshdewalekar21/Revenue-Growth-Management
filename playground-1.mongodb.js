@@ -1,361 +1,271 @@
-// Use the same DB name your backend uses
-use('rgm_tool_prod')
+// Use your app database
+use("rgm_tool_prod");
 
-// CAREFUL: clears old data in this DB so we start clean
-db.dropDatabase();
-use('rgm_tool_prod')
+// =============================
+// 1) ADD NEW PRODUCTS
+// =============================
 
-// --- 1) Users (for future auth/backend) ---
-
-db.users.insertOne({
-  email: "test@gamil.com",
-  // DEMO ONLY – real apps must hash passwords
-  password: "test123",
-  role: "admin",
-  createdAt: new Date()
-});
-
-// --- 2) Products (master data used across dashboards) ---
-
-const { insertedIds } = db.products.insertMany([
+const { insertedIds: productIds } = db.products.insertMany([
   {
-    name: "Sparkle Cola 330ml",
+    name: "Sparkling Water 500ml",
     category: "Beverages",
-    current_price: 1.49,
-    recommended_price: 1.59,
-    competitor_price: 1.69,
-    margin_pct: 32.5,
-    price_elasticity: -1.8
+    current_price: 1.29,
+    recommended_price: 1.39,
+    competitor_price: 1.49,
+    margin_pct: 30.5,
+    price_elasticity: -1.30,
   },
   {
-    name: "Sparkle Cola Zero 330ml",
+    name: "Energy Drink 250ml",
     category: "Beverages",
-    current_price: 1.59,
-    recommended_price: 1.69,
-    competitor_price: 1.79,
-    margin_pct: 34.1,
-    price_elasticity: -1.5
+    current_price: 2.19,
+    recommended_price: 2.29,
+    competitor_price: 2.49,
+    margin_pct: 38.0,
+    price_elasticity: -1.70,
   },
   {
-    name: "Citrus Splash 1L",
-    category: "Beverages",
+    name: "Family Cookies 300g",
+    category: "Snacks",
     current_price: 2.99,
     recommended_price: 3.09,
-    competitor_price: 3.19,
-    margin_pct: 28.7,
-    price_elasticity: -2.2
+    competitor_price: 3.29,
+    margin_pct: 33.2,
+    price_elasticity: -1.45,
   },
-  {
-    name: "Energy Max 500ml",
-    category: "Energy Drinks",
-    current_price: 2.49,
-    recommended_price: 2.59,
-    competitor_price: 2.79,
-    margin_pct: 36.2,
-    price_elasticity: -1.9
-  },
-  {
-    name: "Pure Spring Water 1.5L",
-    category: "Water",
-    current_price: 0.99,
-    recommended_price: 1.05,
-    competitor_price: 1.09,
-    margin_pct: 22.4,
-    price_elasticity: -0.8
-  }
 ]);
 
-const [p1, p2, p3, p4, p5] = Object.values(insertedIds);
+const sparklingId = productIds["0"];
+const energyId    = productIds["1"];
+const cookiesId   = productIds["2"];
 
-// --- 3) Pricing records (for Pricing page KPIs/charts) ---
+// =============================
+// 2) PRICING RECORDS
+//    (Pricing page charts/tables)
+// =============================
 
 db.pricing_records.insertMany([
-  // Sparkle Cola 330ml
+  // Sparkling Water
   {
-    product_id: p1,
-    effective_date: ISODate("2025-01-01T00:00:00Z"),
-    revenue: 125000,
-    price_index: 98.5
-  },
-  {
-    product_id: p1,
-    effective_date: ISODate("2025-02-01T00:00:00Z"),
-    revenue: 132500,
-    price_index: 99.2
-  },
-  {
-    product_id: p1,
-    effective_date: ISODate("2025-03-01T00:00:00Z"),
-    revenue: 141000,
-    price_index: 100.1
-  },
-
-  // Sparkle Cola Zero 330ml
-  {
-    product_id: p2,
-    effective_date: ISODate("2025-01-01T00:00:00Z"),
-    revenue: 98000,
-    price_index: 101.3
-  },
-  {
-    product_id: p2,
-    effective_date: ISODate("2025-02-01T00:00:00Z"),
-    revenue: 104500,
-    price_index: 100.7
-  },
-  {
-    product_id: p2,
-    effective_date: ISODate("2025-03-01T00:00:00Z"),
-    revenue: 112000,
-    price_index: 99.9
-  },
-
-  // Citrus Splash 1L
-  {
-    product_id: p3,
-    effective_date: ISODate("2025-01-01T00:00:00Z"),
-    revenue: 210000,
-    price_index: 97.4
-  },
-  {
-    product_id: p3,
-    effective_date: ISODate("2025-02-01T00:00:00Z"),
-    revenue: 224000,
-    price_index: 98.1
-  },
-
-  // Energy Max 500ml
-  {
-    product_id: p4,
-    effective_date: ISODate("2025-01-01T00:00:00Z"),
-    revenue: 158000,
-    price_index: 102.2
-  },
-  {
-    product_id: p4,
-    effective_date: ISODate("2025-02-01T00:00:00Z"),
-    revenue: 169500,
-    price_index: 101.6
-  },
-
-  // Pure Spring Water 1.5L
-  {
-    product_id: p5,
-    effective_date: ISODate("2025-01-01T00:00:00Z"),
+    product_id: sparklingId,
+    effective_date: "2024-04-01",
+    price: 1.29,
     revenue: 90000,
-    price_index: 95.7
+    price_index: 1.00,
+    region: "National",
+    margin_pct: 29.0,
+    units_sold: 70000,
+    competitor_price: 1.39,
   },
   {
-    product_id: p5,
-    effective_date: ISODate("2025-02-01T00:00:00Z"),
+    product_id: sparklingId,
+    effective_date: "2024-05-01",
+    price: 1.39,
     revenue: 95000,
-    price_index: 96.2
-  }
+    price_index: 1.03,
+    region: "National",
+    margin_pct: 30.5,
+    units_sold: 72000,
+    competitor_price: 1.49,
+  },
+
+  // Energy Drink
+  {
+    product_id: energyId,
+    effective_date: "2024-04-01",
+    price: 2.19,
+    revenue: 120000,
+    price_index: 0.97,
+    region: "National",
+    margin_pct: 36.0,
+    units_sold: 55000,
+    competitor_price: 2.39,
+  },
+  {
+    product_id: energyId,
+    effective_date: "2024-05-01",
+    price: 2.29,
+    revenue: 130000,
+    price_index: 1.02,
+    region: "National",
+    margin_pct: 38.5,
+    units_sold: 58000,
+    competitor_price: 2.49,
+  },
+
+  // Family Cookies
+  {
+    product_id: cookiesId,
+    effective_date: "2024-04-01",
+    price: 2.99,
+    revenue: 110000,
+    price_index: 1.01,
+    region: "National",
+    margin_pct: 32.0,
+    units_sold: 45000,
+    competitor_price: 3.19,
+  },
 ]);
 
-// --- 4) Promotions (for Promotions page KPIs/charts) ---
+// =============================
+// 3) PROMOTIONS
+//    (Promotions page cards & charts)
+// =============================
 
 db.promotions.insertMany([
   {
-    product_id: p1,
-    name: "New Year Cola Burst",
-    status: "active",
-    roi: 3.2,
-    revenue_lift_pct: 14.5,
-    start_date: ISODate("2025-01-05T00:00:00Z"),
-    end_date: ISODate("2025-01-18T00:00:00Z"),
-    discount_pct: 20,
-    channel: "Retail"
-  },
-  {
-    product_id: p2,
-    name: "Zero Sugar Campaign",
-    status: "completed",
-    roi: 2.6,
-    revenue_lift_pct: 11.3,
-    start_date: ISODate("2024-11-10T00:00:00Z"),
-    end_date: ISODate("2024-11-24T00:00:00Z"),
-    discount_pct: 15,
-    channel: "E-commerce"
-  },
-  {
-    product_id: p3,
-    name: "Family Pack Week",
-    status: "planned",
-    roi: 3.9,
-    revenue_lift_pct: 18.7,
-    start_date: ISODate("2025-03-01T00:00:00Z"),
-    end_date: ISODate("2025-03-10T00:00:00Z"),
+    name: "Spring Bubbles 10% Off",
+    product_id: sparklingId,
+    channel: "Retail",
+    start_date: "2024-04-10",
+    end_date: "2024-04-24",
     discount_pct: 10,
-    channel: "Foodservice"
+    revenue_lift_pct: 11.5,
+    roi: 2.8,
+    cannibalization_pct: 4.0,
+    duration_days: 14,
+    status: "completed",
   },
   {
-    product_id: p4,
-    name: "Energy Max Nightlife",
+    name: "Energy Launch 15% Off",
+    product_id: energyId,
+    channel: "Retail",
+    start_date: "2024-05-01",
+    end_date: "2024-05-14",
+    discount_pct: 15,
+    revenue_lift_pct: 18.0,
+    roi: 3.5,
+    cannibalization_pct: 6.0,
+    duration_days: 14,
     status: "completed",
-    roi: 4.1,
-    revenue_lift_pct: 21.4,
-    start_date: ISODate("2024-09-01T00:00:00Z"),
-    end_date: ISODate("2024-09-14T00:00:00Z"),
-    discount_pct: 18,
-    channel: "Retail"
-  }
+  },
+  {
+    name: "Cookie Weekend Bundle",
+    product_id: cookiesId,
+    channel: "E-commerce",
+    start_date: "2024-06-07",
+    end_date: "2024-06-09",
+    discount_pct: 12,
+    revenue_lift_pct: 9.3,
+    roi: 2.1,
+    cannibalization_pct: 3.0,
+    duration_days: 3,
+    status: "planned",
+  },
 ]);
 
-// --- 5) Demand forecasts (for Forecasting page) ---
+// =============================
+// 4) DEMAND FORECASTS
+//    (Forecasting page charts)
+// =============================
 
 db.demand_forecasts.insertMany([
-  // Historical for p1 (Sparkle Cola)
+  // Historical for Sparkling Water (is_forecast: false)
   {
-    product_id: p1,
-    forecast_date: "2024-10-01",
-    actual_demand: 82000,
-    predicted_demand: 80000,
-    is_forecast: false,
-    seasonality_index: 1.05,
-    trend_component: 78000
-  },
-  {
-    product_id: p1,
-    forecast_date: "2024-11-01",
-    actual_demand: 91000,
-    predicted_demand: 89000,
-    is_forecast: false,
-    seasonality_index: 1.12,
-    trend_component: 84000
-  },
-  {
-    product_id: p1,
-    forecast_date: "2024-12-01",
-    actual_demand: 104000,
-    predicted_demand: 101000,
-    is_forecast: false,
-    seasonality_index: 1.25,
-    trend_component: 88000
-  },
-  // Future forecast for p1
-  {
-    product_id: p1,
-    forecast_date: "2025-01-01",
-    actual_demand: null,
-    predicted_demand: 97000,
-    is_forecast: true,
-    seasonality_index: 1.10,
-    trend_component: 88000
-  },
-  {
-    product_id: p1,
-    forecast_date: "2025-02-01",
-    actual_demand: null,
-    predicted_demand: 93000,
-    is_forecast: true,
-    seasonality_index: 1.03,
-    trend_component: 90000
-  },
-
-  // Historical for p2 (Zero)
-  {
-    product_id: p2,
-    forecast_date: "2024-10-01",
+    product_id: sparklingId,
+    forecast_date: "2024-01-01",
     actual_demand: 60000,
     predicted_demand: 59000,
     is_forecast: false,
-    seasonality_index: 0.98,
-    trend_component: 58000
+    seasonality_index: 0.95,
+    trend_component: 58000,
   },
   {
-    product_id: p2,
-    forecast_date: "2024-11-01",
-    actual_demand: 64000,
-    predicted_demand: 63000,
+    product_id: sparklingId,
+    forecast_date: "2024-02-01",
+    actual_demand: 65000,
+    predicted_demand: 64000,
     is_forecast: false,
-    seasonality_index: 1.02,
-    trend_component: 61000
+    seasonality_index: 0.98,
+    trend_component: 60000,
   },
   {
-    product_id: p2,
-    forecast_date: "2024-12-01",
+    product_id: sparklingId,
+    forecast_date: "2024-03-01",
     actual_demand: 70000,
     predicted_demand: 69000,
     is_forecast: false,
-    seasonality_index: 1.10,
-    trend_component: 65000
+    seasonality_index: 1.02,
+    trend_component: 62000,
   },
-  // Future forecast for p2
+
+  // Future forecasts for Sparkling Water (is_forecast: true)
   {
-    product_id: p2,
-    forecast_date: "2025-01-01",
+    product_id: sparklingId,
+    forecast_date: "2024-04-01",
     actual_demand: null,
-    predicted_demand: 68000,
+    predicted_demand: 72000,
+    is_forecast: true,
+    seasonality_index: 1.04,
+    trend_component: 64000,
+  },
+  {
+    product_id: sparklingId,
+    forecast_date: "2024-05-01",
+    actual_demand: null,
+    predicted_demand: 75000,
     is_forecast: true,
     seasonality_index: 1.05,
-    trend_component: 66000
-  }
+    trend_component: 66000,
+  },
+
+  // Historical for Energy Drink
+  {
+    product_id: energyId,
+    forecast_date: "2024-01-01",
+    actual_demand: 40000,
+    predicted_demand: 39500,
+    is_forecast: false,
+    seasonality_index: 0.93,
+    trend_component: 39000,
+  },
+  {
+    product_id: energyId,
+    forecast_date: "2024-02-01",
+    actual_demand: 43000,
+    predicted_demand: 42500,
+    is_forecast: false,
+    seasonality_index: 0.96,
+    trend_component: 40500,
+  },
 ]);
 
-// --- 6) Assortment data (for Assortment page) ---
+// =============================
+// 5) ASSORTMENT DATA
+//    (Assortment page table & charts)
+// =============================
 
 db.assortment_data.insertMany([
   {
-    product_id: p1,
+    product_id: sparklingId,
     channel: "Retail",
-    revenue: 350000,
-    revenue_growth_pct: 12.4,
-    market_share_pct: 18.2,
-    category_mix_pct: 32.5,
-    recommendation: "keep"
-  },
-  {
-    product_id: p1,
-    channel: "E-commerce",
-    revenue: 120000,
+    revenue: 250000,
     revenue_growth_pct: 9.8,
-    market_share_pct: 6.3,
-    category_mix_pct: 10.5,
-    recommendation: "add"
+    market_share_pct: 7.5,
+    category_mix_pct: 14.0,
+    units_sold: 180000,
+    recommendation: "keep",
   },
   {
-    product_id: p2,
+    product_id: energyId,
     channel: "Retail",
+    revenue: 310000,
+    revenue_growth_pct: 12.3,
+    market_share_pct: 6.8,
+    category_mix_pct: 16.0,
+    units_sold: 190000,
+    recommendation: "add",
+  },
+  {
+    product_id: cookiesId,
+    channel: "E-commerce",
     revenue: 180000,
-    revenue_growth_pct: 21.1,
-    market_share_pct: 9.6,
-    category_mix_pct: 18.0,
-    recommendation: "add"
+    revenue_growth_pct: 4.5,
+    market_share_pct: 3.2,
+    category_mix_pct: 10.0,
+    units_sold: 90000,
+    recommendation: "review",
   },
-  {
-    product_id: p3,
-    channel: "Foodservice",
-    revenue: 420000,
-    revenue_growth_pct: -3.2,
-    market_share_pct: 14.3,
-    category_mix_pct: 24.0,
-    recommendation: "review"
-  },
-  {
-    product_id: p4,
-    channel: "Retail",
-    revenue: 260000,
-    revenue_growth_pct: 15.7,
-    market_share_pct: 11.4,
-    category_mix_pct: 9.5,
-    recommendation: "keep"
-  },
-  {
-    product_id: p5,
-    channel: "Retail",
-    revenue: 95000,
-    revenue_growth_pct: 4.1,
-    market_share_pct: 5.2,
-    category_mix_pct: 5.0,
-    recommendation: "delist"
-  }
 ]);
 
-// Quick sanity checks (you should see multiple docs in each collection)
-db.users.find();
-db.products.find();
-db.pricing_records.find();
-db.promotions.find();
-db.demand_forecasts.find();
-db.assortment_data.find();
+"Done inserting extra RGM sample data.";

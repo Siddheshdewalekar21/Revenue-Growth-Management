@@ -1,0 +1,34 @@
+flowchart LR
+  subgraph Client[Client Layer]
+    U[User Browser]
+    FE[React Frontend\nVite + TypeScript\nPort 8080]
+    U --> FE
+  end
+
+  subgraph Auth[Auth Layer]
+    SB[Supabase Auth\nLogin and Session]
+  end
+
+  subgraph Api[API Layer]
+    P[Python API\nFastAPI and sklearn\nPort 4000]
+  end
+
+  subgraph Data[Data Layer]
+    M[(MongoDB\nrgm_tool_prod)]
+  end
+
+  FE -->|all business APIs| P
+
+  FE -->|auth flows| SB
+
+  P --> M
+
+  classDef front fill:#e6f4ff,stroke:#1e88e5,stroke-width:1px;
+  classDef api fill:#e8f5e9,stroke:#2e7d32,stroke-width:1px;
+  classDef data fill:#fff3e0,stroke:#ef6c00,stroke-width:1px;
+  classDef auth fill:#f3e5f5,stroke:#8e24aa,stroke-width:1px;
+
+  class FE,U front;
+  class P api;
+  class M data;
+  class SB auth;

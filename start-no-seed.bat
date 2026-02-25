@@ -1,0 +1,1 @@
+@echo off\nREM Quick start without MongoDB seed (useful for subsequent runs)\ncd /d \"%~dp0my-essential-tool-main\"\nnpm run dev:all:no-seed\npause\n

@@ -1,5 +1,10 @@
 {
-  "dependencies": {
-    "openai": "^6.21.0"
+  "dependencies": { "openai": "^6.21.0" },
+  "scripts": {
+    "seed:mongo": "cd my-essential-tool-main && node server/scripts/seedMongo.js",
+    "dev:all": "cd my-essential-tool-main && npm run dev:all",
+    "dev:all:no-seed": "cd my-essential-tool-main && npm run dev:all:no-seed",
+    "server": "cd my-essential-tool-main && npm run server",
+    "dev": "cd my-essential-tool-main && npm run dev"
   }
 }

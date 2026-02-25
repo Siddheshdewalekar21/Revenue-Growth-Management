@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RGM Platform - Client Presentation Document</title>
+  <style>
+    :root {
+      --text: #111827;
+      --muted: #4b5563;
+      --border: #d1d5db;
+      --title: #0f172a;
+      --accent: #1d4ed8;
+      --bg-soft: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      line-height: 1.45;
+      background: #fff;
+    }
+    .page {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 36px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      color: var(--title);
+      font-size: 30px;
+      border-bottom: 3px solid var(--accent);
+      padding-bottom: 8px;
+    }
+    h2 {
+      margin-top: 26px;
+      margin-bottom: 10px;
+      color: var(--title);
+      font-size: 20px;
+    }
+    h3 {
+      margin-top: 16px;
+      margin-bottom: 8px;
+      color: var(--title);
+      font-size: 16px;
+    }
+    p { margin: 8px 0; }
+    .meta {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+    .summary {
+      background: var(--bg-soft);
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 700;
+    }
+    ol { margin: 8px 0 12px 22px; }
+    li { margin: 3px 0; }
+    .img-wrap {
+      margin: 12px 0 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 6px;
+    }
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+      height: 0;
+    }
+    @media print {
+      .page { padding: 20px; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>RGM Platform - Client Presentation Document</h1>
+    <div class="meta">
+      <strong>Project:</strong> AI-Driven Revenue Growth Management (RGM)<br>
+      <strong>Date:</strong> February 14, 2026<br>
+      <strong>Version:</strong> 2.0
+    </div>
+
+    <h2>1. Executive Summary</h2>
+    <p>This platform helps enterprise commercial teams improve pricing quality, promotion effectiveness, assortment decisions, and demand planning using machine learning and financial analytics in one workflow.</p>
+    <div class="summary">
+      <strong>Business outcomes:</strong>
+      <ol>
+        <li>Increase revenue through better commercial actions.</li>
+        <li>Reduce margin leakage using loss-aware decision logic.</li>
+        <li>Standardize planning across pricing, promotions, assortment, and forecasting.</li>
+      </ol>
+    </div>
+
+    <h2>2. Business Problems Solved</h2>
+    <table>
+      <thead>
+        <tr><th>Business problem</th><th>Current risk</th><th>Platform response</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Pricing decisions are reactive</td><td>Revenue or volume optimized but profit missed</td><td>ML-assisted pricing recommendations with revenue/profit/loss impact</td></tr>
+        <tr><td>Promotions focus only on lift</td><td>Weak ROI, high cannibalization</td><td>Scenario simulation with predicted ROI, cannibalization, incremental profit/loss</td></tr>
+        <tr><td>Assortment decisions are subjective</td><td>Shelf/menu space wasted on weak SKUs</td><td>Data-driven add/keep/delist/review recommendations</td></tr>
+        <tr><td>Forecasting is demand-only</td><td>Financial planning blind spots</td><td>Demand forecast translated to projected revenue/profit/loss</td></tr>
+      </tbody>
+    </table>
+
+    <h2>3. Module Scope</h2>
+    <table>
+      <thead>
+        <tr><th>Module</th><th>User view</th><th>Decision output</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Executive Overview</td><td>KPI cards + revenue by category</td><td>Commercial health snapshot</td></tr>
+        <tr><td>Pricing</td><td>Price table, elasticity, competitor view</td><td>Increase/decrease/hold with projected financial impact</td></tr>
+        <tr><td>Promotions</td><td>History, upcoming events, simulator</td><td>Best discount-duration-channel setup</td></tr>
+        <tr><td>Assortment</td><td>SKU/channel performance matrix</td><td>Add/keep/delist/review with confidence</td></tr>
+        <tr><td>Forecasting</td><td>Actual vs predicted demand, trend, seasonality</td><td>Forward demand and financial projection</td></tr>
+      </tbody>
+    </table>
+
+    <h2>4. AI and Data Foundation</h2>
+    <table>
+      <thead>
+        <tr><th>Domain</th><th>ML component</th><th>Core output</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Pricing</td><td><code>ml_pricing.py</code></td><td>Recommended price and projected revenue/profit/loss</td></tr>
+        <tr><td>Promotions</td><td><code>ml_promotion.py</code></td><td>Predicted ROI, lift, cannibalization, incremental P&amp;L</td></tr>
+        <tr><td>Assortment</td><td><code>ml_assortment.py</code></td><td>SKU recommendation class</td></tr>
+        <tr><td>Forecasting</td><td><code>ml_forecast.py</code></td><td>Future demand time-series (ML-only generation)</td></tr>
+      </tbody>
+    </table>
+
+    <table>
+      <thead>
+        <tr><th>Core collection</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>products</code></td><td>SKU context: cost, price, competitor, channel, elasticity</td></tr>
+        <tr><td><code>pricing_records</code></td><td>Historical price behavior and profit/loss</td></tr>
+        <tr><td><code>promotions</code></td><td>Campaign setup and historical outcomes</td></tr>
+        <tr><td><code>event_calendar</code></td><td>Upcoming events linked with historical references</td></tr>
+        <tr><td><code>assortment_data</code></td><td>SKU/channel performance for mix optimization</td></tr>
+        <tr><td><code>demand_forecasts</code></td><td>Historical + projected demand and financial projection</td></tr>
+      </tbody>
+    </table>
+
+    <p class="small"><strong>Demo data snapshot (February 14, 2026):</strong> 8 products, 18 pricing records, 11 promotions, 8 events, 11 assortment rows, 19 forecast rows.</p>
+
+    <div class="page-break"></div>
+
+    <h2>5. Architecture</h2>
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>Technology</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Frontend</td><td>React 18, TypeScript, Vite, Tailwind, shadcn, Recharts</td></tr>
+        <tr><td>API</td><td>FastAPI (Python) on port 4000</td></tr>
+        <tr><td>ML</td><td>scikit-learn models (RandomForest, Ridge)</td></tr>
+        <tr><td>Database</td><td>MongoDB</td></tr>
+        <tr><td>Identity</td><td>Supabase Auth</td></tr>
+      </tbody>
+    </table>
+
+    <div class="img-wrap">
+      <img src="architecture-diagram-clear.png" alt="Architecture Diagram" />
+    </div>
+
+    <h2>6. End-to-End Workflow</h2>
+    <ol>
+      <li>Ingest sales, pricing, promotions, cost, and event data.</li>
+      <li>Enrich data with profit/loss-aware features.</li>
+      <li>Run ML and analytics for pricing, promotions, assortment, and forecasting.</li>
+      <li>Serve outputs via APIs to business dashboards.</li>
+      <li>Execute commercial actions and capture results.</li>
+      <li>Use outcomes as feedback for the next planning cycle.</li>
+    </ol>
+
+    <div class="img-wrap">
+      <img src="workflow-diagram-clear.png" alt="Workflow Diagram" />
+    </div>
+
+    <h2>7. KPI Framework</h2>
+    <table>
+      <thead>
+        <tr><th>KPI</th><th>Business meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Revenue growth (%)</td><td>Topline value creation</td></tr>
+        <tr><td>Net profit growth (%)</td><td>Real profitability improvement</td></tr>
+        <tr><td>Margin leakage reduction (%)</td><td>Control of avoidable commercial loss</td></tr>
+        <tr><td>Promotion ROI uplift</td><td>Campaign quality improvement</td></tr>
+        <tr><td>Forecast error (MAPE/RMSE)</td><td>Planning reliability</td></tr>
+        <tr><td>Decision cycle time</td><td>Commercial operating speed</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8. Delivery Status and Next Steps</h2>
+    <p><strong>Ready today:</strong> end-to-end UI, FastAPI + Mongo integration, ML modules, profit/loss-enriched seed data, and client-ready architecture/workflow visuals.</p>
+    <p><strong>Next phase:</strong> ERP/POS integration, governance workflow, stronger model monitoring, and production rollout controls.</p>
+
+    <p class="small" style="margin-top:18px;"><em>Printing tip: open this file in a browser and use Ctrl+P (Save as PDF) for client handouts.</em></p>
+  </div>
+</body>
+</html>

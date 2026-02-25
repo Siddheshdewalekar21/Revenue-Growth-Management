@@ -1,0 +1,18 @@
+flowchart TD
+  U[User Browser<br/>http://localhost:8080] --> R[React App<br/>App.tsx + Protected Routes]
+
+  R --> PR[Pricing Page]
+  R --> PM[Promotions Page]
+  R --> AS[Assortment Page]
+  R --> FC[Forecasting Page]
+
+  PR --> P1[/Python API :4000<br/>/api/products<br/>/api/pricing-records<br/>/api/pricing/insight/]
+  PM --> P2[/Python API :4000<br/>/api/promotions<br/>/api/promotions/upcoming<br/>/api/promotions/recommendation/]
+  AS --> P3[/Python API :4000<br/>/api/assortment/]
+
+  FC --> PF[/Python API :4000<br/>/api/health<br/>/api/products<br/>/api/forecasts<br/>/api/forecasts/generate/]
+
+  P1 --> DB[(MongoDB<br/>rgm_tool_prod)]
+  P2 --> DB
+  P3 --> DB
+  PF --> DB

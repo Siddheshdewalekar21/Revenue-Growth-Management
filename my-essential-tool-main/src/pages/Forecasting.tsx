@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area } from "recharts";
-import { LineChart as LineChartIcon, Target, TrendingUp, BarChart3 } from "lucide-react";
+import { LineChart as LineChartIcon, Target, TrendingUp, TrendingDown, BarChart3, DollarSign } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 
@@ -13,7 +13,23 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000
 
 const Forecasting = () => {
   const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const [lastUsedMl, setLastUsedMl] = useState<boolean | null>(null);
+  const [recalculateError, setRecalculateError] = useState<string | null>(null);
   const queryClient = useQueryClient();
+
+  const { data: health } = useQuery({
+    queryKey: ["api-health"],
+    queryFn: async () => {
+      const res = await fetch(`${API_BASE_URL}/api/health`);
+      if (!res.ok) return { mlAvailable: false };
+      const data = await res.json().catch(() => ({}));
+      return {
+        ...data,
+        mlAvailable: data?.mlAvailable === true,
+      };
+    },
+  });
+  const mlAvailable = health?.mlAvailable === true;
 
   const { data: products } = useQuery({
     queryKey: ["products-forecast"],
@@ -42,21 +58,37 @@ const Forecasting = () => {
   });
 
   const handleRecalculate = async () => {
-    if (!selectedProduct) return;
+    if (!selectedProduct || !mlAvailable) return;
+    setRecalculateError(null);
 
-    await fetch(`${API_BASE_URL}/api/forecasts/generate`, {
+    const res = await fetch(`${API_BASE_URL}/api/forecasts/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ productId: selectedProduct }),
+      body: JSON.stringify({
+        productId: selectedProduct,
+        useMl: true,
+      }),
     });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setRecalculateError(data.detail || data.error || "Failed to generate ML forecast");
+      return;
+    }
+    setLastUsedMl(data.usedMl === true);
+    if (data.usedMl !== true) {
+      setRecalculateError("ML-only mode is enabled, but backend did not use ML.");
+    }
 
     await queryClient.invalidateQueries({ queryKey: ["forecasts", selectedProduct] });
   };
 
   const historical = forecasts?.filter((f) => !f.is_forecast) || [];
   const forecast = forecasts?.filter((f) => f.is_forecast) || [];
+  const projectedRevenue = forecast.reduce((s, f) => s + Number(f.predicted_revenue || 0), 0);
+  const projectedProfit = forecast.reduce((s, f) => s + Number(f.predicted_profit || 0), 0);
+  const projectedLoss = forecast.reduce((s, f) => s + Number(f.predicted_loss || f.loss_amount || 0), 0);
 
   // MAPE calculation
   const mape = historical.length
@@ -105,7 +137,7 @@ const Forecasting = () => {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Demand Forecasting</h1>
-          <p className="text-muted-foreground">AI-powered demand predictions and trend analysis</p>
+          <p className="text-muted-foreground">ML-only demand forecasting and trend analysis</p>
         </div>
         <div className="flex flex-col items-end gap-2">
           <Select value={selectedProduct} onValueChange={setSelectedProduct}>
@@ -118,14 +150,22 @@ const Forecasting = () => {
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            {mlAvailable
+              ? "ML-only mode enabled."
+              : "ML backend unavailable. Start python-backend to recalculate forecasts."}
+          </p>
           <Button
             variant="outline"
             size="sm"
             onClick={handleRecalculate}
-            disabled={!selectedProduct}
+            disabled={!selectedProduct || !mlAvailable}
           >
             Recalculate forecast
           </Button>
+          {recalculateError && (
+            <p className="max-w-[280px] text-right text-xs text-destructive">{recalculateError}</p>
+          )}
         </div>
       </div>
 
@@ -133,13 +173,16 @@ const Forecasting = () => {
         <KPICard title="MAPE" value={`${mape}%`} change="Forecast accuracy" changeType="positive" icon={Target} />
         <KPICard title="RMSE" value={rmse} change="Root mean square error" changeType="neutral" icon={BarChart3} />
         <KPICard title="Forecast Horizon" value={`${forecast.length} months`} change="Forward-looking" changeType="neutral" icon={LineChartIcon} />
-        <KPICard title="Data Points" value={String(historical.length)} change="Historical months" changeType="neutral" icon={TrendingUp} />
+        <KPICard title="Data Points" value={String(historical.length)} change={lastUsedMl === true ? "Last run: ML model" : "Model: ML only"} changeType="neutral" icon={TrendingUp} />
+        <KPICard title="Forecast Revenue" value={`$${(projectedRevenue / 1000000).toFixed(1)}M`} change="Projected total" changeType="positive" icon={DollarSign} />
+        <KPICard title="Forecast Profit" value={`$${(projectedProfit / 1000000).toFixed(1)}M`} change="Projected net" changeType="positive" icon={TrendingUp} />
+        <KPICard title="Forecast Loss" value={`$${(projectedLoss / 1000).toFixed(0)}K`} change="Projected downside" changeType="negative" icon={TrendingDown} />
       </div>
 
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="text-lg">Demand: Actual vs Forecast</CardTitle>
-          <CardDescription>Historical demand with AI-generated predictions (dashed = forecast)</CardDescription>
+          <CardDescription>Historical demand with ML predictions (dashed = forecast).</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[320px] w-full">

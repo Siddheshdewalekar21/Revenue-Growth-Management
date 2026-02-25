@@ -1,0 +1,48 @@
+flowchart LR
+    U[Business User] --> FE
+
+    subgraph FE[Frontend Layer]
+        A1[React 18 + TypeScript]
+        A2[Routing + ProtectedLayout]
+        A3[Pages: Overview, Pricing, Promotions, Assortment, Forecasting]
+    end
+
+    FE -->|Sign in and session| SA
+    FE -->|Overview reads products and assortment_data| SP
+    FE -->|Business APIs| API
+
+    subgraph SA[Supabase]
+        SA1[Auth Service]
+        SP[(Postgres optional Overview tables)]
+    end
+
+    subgraph API[FastAPI Backend :4000]
+        B1["/api/products"]
+        B2["/api/pricing-records"]
+        B3["/api/pricing/insight"]
+        B4["/api/promotions, /api/promotions/upcoming"]
+        B5["/api/promotions/recommendation, /api/promotions/simulate"]
+        B6["/api/assortment"]
+        B7["/api/forecasts, /api/forecasts/generate"]
+    end
+
+    API --> ML
+    API --> MDB
+
+    subgraph ML[ML Modules in python-backend]
+        M1[ml_pricing.py]
+        M2[ml_promotion.py]
+        M3[ml_assortment.py]
+        M4[ml_forecast.py]
+    end
+
+    subgraph MDB[MongoDB rgm_tool_prod]
+        D1[(products)]
+        D2[(pricing_records)]
+        D3[(promotions)]
+        D4[(event_calendar)]
+        D5[(assortment_data)]
+        D6[(demand_forecasts)]
+    end
+
+    S[Seed Script node server/scripts/seedMongo.js] --> MDB

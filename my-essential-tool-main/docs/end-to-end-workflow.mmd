@@ -1,0 +1,23 @@
+flowchart TD
+    A[Enterprise Data Inputs<br/>POS Sales, Promotions, Pricing, Costs, Calendar] --> B[Ingestion and Data Quality Checks]
+    B --> C[Feature Engineering<br/>Revenue, Margin, Profit, Loss, Elasticity, Lift]
+    C --> D[(MongoDB RGM Database)]
+
+    D --> E1[Pricing Engine<br/>ML if available, else data-driven]
+    D --> E2[Promotion Engine<br/>ML if available, else simulation rules]
+    D --> E3[Assortment Engine<br/>ML if available, else recommendation rules]
+    D --> E4[Forecasting Engine<br/>ML-only forecast generation]
+
+    E1 --> F[FastAPI Service Layer<br/>/api/pricing/insight]
+    E2 --> F
+    E3 --> F
+    E4 --> F
+    D --> F
+
+    G[Supabase Auth<br/>User Session and Access Control] --> H[React Frontend<br/>Overview, Pricing, Promotions, Assortment, Forecasting]
+    F --> H
+
+    H --> I[Commercial Decisions<br/>Price change, Promo plan, SKU action, Demand plan]
+    I --> J[Business Execution<br/>Retail and Foodservice market actions]
+    J --> K[Performance Outcomes<br/>Revenue up, Margin leakage down, Loss reduction]
+    K --> A

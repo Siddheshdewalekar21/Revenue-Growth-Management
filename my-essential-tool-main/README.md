@@ -1,73 +1,77 @@
-# Welcome to your Lovable project
+# RGM System – AI-Driven Revenue Growth Management
 
-## Project info
+AI-driven RGM leverages ML to optimize **pricing**, **promotions**, **assortment**, and **revenue strategy** for CPG and Foodservice.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## AI/ML in this project
 
-## How can I edit this code?
+The app is framed as **AI-driven RGM** in docs and UI. **ML is used today for demand forecasting** (Python backend: `python-backend/ml_forecast.py` and “Use ML model” on the Forecasting page). The rest (pricing insight, promotion recommendation, assortment) is **data-driven / ML-informed** and ready for more AI/ML (e.g. pricing or promotion models) when you add them. See `docs/AI_AND_ML_IN_RGM.md`.
 
-There are several ways of editing your application.
+## Tech stack
 
-**Use Lovable**
+- **Frontend:** Vite, TypeScript, React, React Router, TanStack Query, shadcn-ui, Tailwind CSS, Recharts
+- **Backend:** Python, FastAPI (REST API on port 4000)
+- **Data:** MongoDB (products, pricing, promotions, event_calendar, assortment, demand_forecasts)
+- **Auth:** Supabase (email/password)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting started
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+**Requirements:** Node.js, npm, Python 3.10+, MongoDB (local or cloud).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
+# Install dependencies
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Install Python backend dependencies (first time only)
+cd python-backend
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+cd ..
+
+# One-command startup (seed + backend + frontend)
+npm run dev:all
+
+# Fast restart without reseeding
+npm run dev:all:no-seed
 ```
 
-**Edit a file directly in GitHub**
+- Frontend: http://localhost:8080  
+- API: http://localhost:4000  
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+**Environment:** Configure `.env` with `MONGODB_URI`, `MONGODB_DB`, `PORT`, Supabase URL/keys, and optionally `VITE_API_BASE_URL`.  
+For Google Calendar auto events, also set:
+- `GOOGLE_CALENDAR_ICS_URLS` (free iCal URL, recommended), or
+- `GOOGLE_CALENDAR_IDS` + `GOOGLE_CALENDAR_API_KEY` (Google Calendar API).
+- Optional: `GOOGLE_CALENDAR_SYNC_ON_READ=true` to auto-sync on `GET /api/promotions/upcoming`.
 
-**Use GitHub Codespaces**
+**Seed data:** From repo root run `npm run seed:mongo`, or from this folder run `node server/scripts/seedMongo.js`.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Scripts
 
-## What technologies are used for this project?
+| Script        | Description                |
+|---------------|----------------------------|
+| `npm run dev` | Start Vite dev server      |
+| `npm run dev:all` | Seed DB, then run backend + frontend together |
+| `npm run dev:all:no-seed` | Run backend + frontend together without seeding |
+| `npm run build` | Production build         |
+| `npm run server` | Start Python API server |
+| `npm run seed:mongo` | Seed MongoDB (from project root) |
+| `npm run lint` | Run ESLint               |
+| `npm run test` | Run Vitest                |
 
-This project is built with:
+Google Calendar manual sync endpoint:
+- `POST http://localhost:4000/api/promotions/sync-google-calendar`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project structure
 
-## How can I deploy this project?
+- `src/` – React app (pages, components, hooks)
+- `python-backend/` - FastAPI backend and ML forecasting
+- `server/scripts/` - MongoDB seed script
+- `docs/` – Architecture and workflow docs
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Docs
 
-## Can I connect a custom domain to my Lovable project?
+- `docs/AI_AND_ML_IN_RGM.md` – Where AI/ML is used and where it’s ready for more
+- `docs/COMPLETE_ARCHITECTURE.md` – Full architecture overview
+- `docs/TECH_ARCHITECTURE.md` – Tech stack and “what for which”
+- `docs/WORKFLOW.md` – User and data flow
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
