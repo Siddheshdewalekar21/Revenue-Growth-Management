@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -20,24 +21,19 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast({ title: "Login failed", description: error.message, variant: "destructive" });
+    try {
+      if (isLogin) {
+        // Authenticate with mock auth
+        await signIn(email);
+        navigate("/");
       } else {
+        // Mock sign up successfully
+        await signIn(email);
+        toast({ title: "Account created locally", description: "Welcome to the RGM Platform!" });
         navigate("/");
       }
-    } else {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) {
-        toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
-      } else {
-        toast({ title: "Check your email", description: "We sent you a verification link." });
-      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
     setLoading(false);
   };

@@ -2,6 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AIAssistant } from "@/components/AIAssistant";
 
 export default function ProtectedLayout() {
   const { user, loading } = useAuth();
@@ -31,6 +32,7 @@ export default function ProtectedLayout() {
             <Outlet />
           </div>
         </main>
+        <AIAssistant />
       </div>
     </SidebarProvider>
   );

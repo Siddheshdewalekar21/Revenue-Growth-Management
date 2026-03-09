@@ -1,19 +1,28 @@
 import { useEffect, useState, createContext, useContext, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  signIn: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
+
+const mockUser = {
+  id: "mock-id-123",
+  app_metadata: {},
+  user_metadata: {},
+  aud: "authenticated",
+  created_at: new Date().toISOString(),
+} as User;
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   loading: true,
-  signOut: async () => {},
+  signIn: async () => { },
+  signOut: async () => { },
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -22,29 +31,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Check localStorage for mock session
+    const storedAuth = localStorage.getItem("rgm_mock_auth");
+    if (storedAuth) {
+      setUser({ ...mockUser, email: storedAuth });
+      setSession({ user: { ...mockUser, email: storedAuth } } as Session);
+    }
+    setLoading(false);
   }, []);
 
+  const signIn = async (email: string) => {
+    localStorage.setItem("rgm_mock_auth", email);
+    setUser({ ...mockUser, email });
+    setSession({ user: { ...mockUser, email } } as Session);
+  };
+
   const signOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem("rgm_mock_auth");
+    setUser(null);
+    setSession(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
