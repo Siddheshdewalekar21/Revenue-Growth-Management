@@ -398,6 +398,59 @@ class PromotionSimulationPayload(BaseModel):
   budget: Optional[float] = None
 
 
+class ProductCreatePayload(BaseModel):
+  name: str
+  category: str
+  subcategory: Optional[str] = None
+  region: Optional[str] = "National"
+  channel: Optional[str] = "Retail"
+  current_price: float
+  recommended_price: Optional[float] = None
+  competitor_price: Optional[float] = None
+  margin_pct: Optional[float] = None
+  price_elasticity: Optional[float] = None
+  unit_cost: Optional[float] = None
+  units_sold_avg: Optional[int] = None
+
+
+class ProductUpdatePayload(BaseModel):
+  name: Optional[str] = None
+  category: Optional[str] = None
+  subcategory: Optional[str] = None
+  region: Optional[str] = None
+  channel: Optional[str] = None
+  current_price: Optional[float] = None
+  recommended_price: Optional[float] = None
+  competitor_price: Optional[float] = None
+  margin_pct: Optional[float] = None
+  price_elasticity: Optional[float] = None
+  unit_cost: Optional[float] = None
+  units_sold_avg: Optional[int] = None
+
+
+class PricePatchPayload(BaseModel):
+  current_price: float
+  recommended_price: Optional[float] = None
+
+
+class PromotionCreatePayload(BaseModel):
+  product_id: Optional[str] = None
+  name: str
+  status: Optional[str] = "planned"
+  roi: Optional[float] = None
+  revenue_lift_pct: Optional[float] = None
+  discount_pct: Optional[float] = None
+  duration_days: Optional[int] = None
+  channel: Optional[str] = "Retail"
+  promo_type: Optional[str] = "percent_off"
+  product_category: Optional[str] = None
+  region: Optional[str] = None
+  budget: Optional[float] = None
+  start_date: Optional[str] = None
+  end_date: Optional[str] = None
+  event_name: Optional[str] = None
+
+
 # Forecasting ML backend (required for forecast generation).
 try:
   from ml_forecast import generate_ml_forecast
@@ -457,10 +510,19 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
+  # Check DB connectivity
+  db_ok = True
+  db_error = None
+  try:
+    db.command("ping")
+  except Exception as exc:
+    db_ok = False
+    db_error = str(exc)
   return {
-    "status": "ok",
+    "status": "ok" if db_ok else "degraded",
     "service": "rgm-backend-fastapi",
     "time": datetime.utcnow().isoformat(),
+    "db": {"connected": db_ok, "error": db_error},
     "mlAvailable": _FORECAST_ML_AVAILABLE,
     "mlOnly": True,
     "mlCapabilities": {
@@ -472,6 +534,69 @@ def health():
   }
 
 
+@app.get("/api/dashboard/summary")
+def get_dashboard_summary():
+  """Single endpoint for all overview KPIs — avoids multiple round-trips from the dashboard."""
+  try:
+    products = list(db["products"].find({}))
+    promotions = list(db["promotions"].find({}))
+    assortment = list(db["assortment_data"].find({}))
+    pricing_records = list(db["pricing_records"].find({}))
+
+    product_count = len(products)
+    avg_price = round(sum(float(p.get("current_price") or 0) for p in products) / max(1, product_count), 2)
+    avg_margin = round(sum(float(p.get("margin_pct") or 0) for p in products) / max(1, product_count), 1)
+
+    active_promos = sum(1 for p in promotions if p.get("status") == "active")
+    avg_roi = round(sum(float(p.get("roi") or 0) for p in promotions) / max(1, len(promotions)), 2)
+    avg_lift = round(sum(float(p.get("revenue_lift_pct") or 0) for p in promotions) / max(1, len(promotions)), 1)
+
+    total_revenue = sum(float(r.get("revenue") or 0) for r in pricing_records)
+    total_net_profit = sum(float(r.get("net_profit") or 0) for r in pricing_records)
+    total_loss = sum(float(r.get("loss_amount") or 0) for r in pricing_records)
+
+    add_count = sum(1 for a in assortment if a.get("recommendation") == "add")
+    delist_count = sum(1 for a in assortment if a.get("recommendation") == "delist")
+    keep_count = sum(1 for a in assortment if a.get("recommendation") == "keep")
+
+    # Revenue by category
+    category_revenue: Dict[str, float] = {}
+    product_map = {str(p["_id"]): p for p in products}
+    for rec in pricing_records:
+      prod = product_map.get(str(rec.get("product_id") or ""))
+      cat = prod.get("category", "Other") if prod else "Other"
+      category_revenue[cat] = round(category_revenue.get(cat, 0) + float(rec.get("revenue") or 0), 2)
+
+    category_revenue_list = [
+      {"category": cat, "revenue": rev}
+      for cat, rev in sorted(category_revenue.items(), key=lambda x: -x[1])
+    ]
+
+    return {
+      "product_count": product_count,
+      "avg_price": avg_price,
+      "avg_margin": avg_margin,
+      "active_promos": active_promos,
+      "avg_roi": avg_roi,
+      "avg_lift": avg_lift,
+      "total_revenue": round(total_revenue, 2),
+      "total_net_profit": round(total_net_profit, 2),
+      "total_loss": round(total_loss, 2),
+      "assortment_add": add_count,
+      "assortment_delist": delist_count,
+      "assortment_keep": keep_count,
+      "category_revenue": category_revenue_list,
+      "ml_capabilities": {
+        "forecasting": _FORECAST_ML_AVAILABLE,
+        "pricing": _PRICING_ML_AVAILABLE,
+        "promotions": _PROMOTION_ML_AVAILABLE,
+        "assortment": _ASSORTMENT_ML_AVAILABLE,
+      },
+    }
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to fetch dashboard summary") from exc
+
+
 @app.get("/api/products")
 def get_products():
   try:
@@ -479,6 +604,70 @@ def get_products():
     return serialize_list(products)
   except Exception as exc:
     raise HTTPException(status_code=500, detail="Failed to fetch products") from exc
+
+
+@app.post("/api/products")
+def create_product(payload: ProductCreatePayload):
+  try:
+    doc = payload.dict(exclude_none=True)
+    doc["created_at"] = datetime.utcnow()
+    result = db["products"].insert_one(doc)
+    inserted = db["products"].find_one({"_id": result.inserted_id})
+    return serialize_doc(inserted)
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to create product") from exc
+
+
+@app.put("/api/products/{product_id}")
+def update_product(product_id: str, payload: ProductUpdatePayload):
+  try:
+    updates = {k: v for k, v in payload.dict().items() if v is not None}
+    if not updates:
+      raise HTTPException(status_code=400, detail="No fields to update")
+    updates["updated_at"] = datetime.utcnow()
+    result = db["products"].update_one({"_id": ObjectId(product_id)}, {"$set": updates})
+    if result.matched_count == 0:
+      raise HTTPException(status_code=404, detail="Product not found")
+    updated = db["products"].find_one({"_id": ObjectId(product_id)})
+    return serialize_doc(updated)
+  except HTTPException:
+    raise
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to update product") from exc
+
+
+@app.patch("/api/products/{product_id}/price")
+def patch_product_price(product_id: str, payload: PricePatchPayload):
+  """Quick endpoint to update just the price (and optional recommended_price)."""
+  try:
+    updates: Dict[str, Any] = {
+      "current_price": payload.current_price,
+      "updated_at": datetime.utcnow(),
+    }
+    if payload.recommended_price is not None:
+      updates["recommended_price"] = payload.recommended_price
+    result = db["products"].update_one({"_id": ObjectId(product_id)}, {"$set": updates})
+    if result.matched_count == 0:
+      raise HTTPException(status_code=404, detail="Product not found")
+    updated = db["products"].find_one({"_id": ObjectId(product_id)})
+    return {"success": True, "product": serialize_doc(updated)}
+  except HTTPException:
+    raise
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to update price") from exc
+
+
+@app.delete("/api/products/{product_id}")
+def delete_product(product_id: str):
+  try:
+    result = db["products"].delete_one({"_id": ObjectId(product_id)})
+    if result.deleted_count == 0:
+      raise HTTPException(status_code=404, detail="Product not found")
+    return {"success": True, "deleted_id": product_id}
+  except HTTPException:
+    raise
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to delete product") from exc
 
 
 @app.get("/api/pricing-records")
@@ -497,6 +686,36 @@ def get_promotions():
     return serialize_list(promos)
   except Exception as exc:
     raise HTTPException(status_code=500, detail="Failed to fetch promotions") from exc
+
+
+@app.post("/api/promotions")
+def create_promotion(payload: PromotionCreatePayload):
+  try:
+    doc = payload.dict(exclude_none=True)
+    if doc.get("product_id"):
+      try:
+        doc["product_id"] = ObjectId(str(doc["product_id"]))
+      except Exception:
+        pass
+    doc["created_at"] = datetime.utcnow()
+    result = db["promotions"].insert_one(doc)
+    inserted = db["promotions"].find_one({"_id": result.inserted_id})
+    return serialize_doc(inserted)
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to create promotion") from exc
+
+
+@app.delete("/api/promotions/{promo_id}")
+def delete_promotion(promo_id: str):
+  try:
+    result = db["promotions"].delete_one({"_id": ObjectId(promo_id)})
+    if result.deleted_count == 0:
+      raise HTTPException(status_code=404, detail="Promotion not found")
+    return {"success": True, "deleted_id": promo_id}
+  except HTTPException:
+    raise
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to delete promotion") from exc
 
 
 @app.get("/api/promotions/upcoming")
@@ -953,6 +1172,50 @@ def get_assortment():
     return serialize_list(with_names)
   except Exception as exc:
     raise HTTPException(status_code=500, detail="Failed to fetch assortment data") from exc
+
+
+@app.post("/api/seed")
+def seed_database():
+  """
+  Re-seed the database from the seed_data module (demo/dev only).
+  POST /api/seed  →  runs seed_data.py logic inline.
+  """
+  try:
+    import subprocess
+    import sys
+    seed_script = os.path.join(os.path.dirname(__file__), "seed_data.py")
+    result = subprocess.run(
+      [sys.executable, seed_script],
+      capture_output=True, text=True, timeout=120
+    )
+    if result.returncode != 0:
+      raise HTTPException(status_code=500, detail=result.stderr or "Seed script failed")
+    lines = [l for l in result.stdout.splitlines() if l.strip()]
+    return {"success": True, "log": lines}
+  except HTTPException:
+    raise
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/api/stats")
+def get_collection_stats():
+  """Returns document counts and collection sizes for a quick DB overview."""
+  try:
+    collections = [
+      "products", "pricing_records", "promotions",
+      "demand_forecasts", "assortment_data", "event_calendar",
+    ]
+    stats = {}
+    for col in collections:
+      stats[col] = db[col].count_documents({})
+    return {
+      "db": MONGODB_DB,
+      "collections": stats,
+      "timestamp": datetime.utcnow().isoformat(),
+    }
+  except Exception as exc:
+    raise HTTPException(status_code=500, detail="Failed to fetch stats") from exc
 
 
 if __name__ == "__main__":

@@ -1,77 +1,158 @@
-# RGM System – AI-Driven Revenue Growth Management
+# Revenue Growth Management (RGM) System
 
-AI-driven RGM leverages ML to optimize **pricing**, **promotions**, **assortment**, and **revenue strategy** for CPG and Foodservice.
+A full-stack AI-powered Revenue Growth Management platform with ML-driven pricing, promotions, assortment, and demand forecasting.
 
-## AI/ML in this project
+---
 
-The app is framed as **AI-driven RGM** in docs and UI. **ML is used today for demand forecasting** (Python backend: `python-backend/ml_forecast.py` and “Use ML model” on the Forecasting page). The rest (pricing insight, promotion recommendation, assortment) is **data-driven / ML-informed** and ready for more AI/ML (e.g. pricing or promotion models) when you add them. See `docs/AI_AND_ML_IN_RGM.md`.
+## 🛠️ Tech Stack
 
-## Tech stack
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 18, Vite, TypeScript, Recharts, TanStack Query, Tailwind CSS |
+| **Backend** | Python 3.11+, FastAPI, Uvicorn |
+| **ML Models** | scikit-learn (RandomForest, Ridge), NumPy |
+| **Database** | MongoDB Atlas (cloud) or local MongoDB |
 
-- **Frontend:** Vite, TypeScript, React, React Router, TanStack Query, shadcn-ui, Tailwind CSS, Recharts
-- **Backend:** Python, FastAPI (REST API on port 4000)
-- **Data:** MongoDB (products, pricing, promotions, event_calendar, assortment, demand_forecasts)
-- **Auth:** Supabase (email/password)
+---
 
-## Getting started
+## 🚀 Quick Start
 
-**Requirements:** Node.js, npm, Python 3.10+, MongoDB (local or cloud).
+### 1. Start the Backend
 
-```sh
-# Install dependencies
-npm i
+```powershell
+cd my-essential-tool-main/python-backend
 
-# Install Python backend dependencies (first time only)
-cd python-backend
-python -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt
-cd ..
+# Install dependencies (first time only)
+pip install -r requirements.txt
 
-# One-command startup (seed + backend + frontend)
-npm run dev:all
+# (Optional) Seed the database with realistic demo data
+python seed_data.py
 
-# Fast restart without reseeding
-npm run dev:all:no-seed
+# Start the API server
+uvicorn main:app --port 4000 --reload
 ```
 
-- Frontend: http://localhost:8080  
-- API: http://localhost:4000  
+Backend will be live at: **http://localhost:4000**  
+Interactive API docs: **http://localhost:4000/docs**
 
-**Environment:** Configure `.env` with `MONGODB_URI`, `MONGODB_DB`, `PORT`, Supabase URL/keys, and optionally `VITE_API_BASE_URL`.  
-For Google Calendar auto events, also set:
-- `GOOGLE_CALENDAR_ICS_URLS` (free iCal URL, recommended), or
-- `GOOGLE_CALENDAR_IDS` + `GOOGLE_CALENDAR_API_KEY` (Google Calendar API).
-- Optional: `GOOGLE_CALENDAR_SYNC_ON_READ=true` to auto-sync on `GET /api/promotions/upcoming`.
+---
 
-**Seed data:** From repo root run `npm run seed:mongo`, or from this folder run `node server/scripts/seedMongo.js`.
+### 2. Start the Frontend
 
-## Scripts
+```powershell
+cd my-essential-tool-main
 
-| Script        | Description                |
-|---------------|----------------------------|
-| `npm run dev` | Start Vite dev server      |
-| `npm run dev:all` | Seed DB, then run backend + frontend together |
-| `npm run dev:all:no-seed` | Run backend + frontend together without seeding |
-| `npm run build` | Production build         |
-| `npm run server` | Start Python API server |
-| `npm run seed:mongo` | Seed MongoDB (from project root) |
-| `npm run lint` | Run ESLint               |
-| `npm run test` | Run Vitest                |
+# Install dependencies (first time only)
+npm install
 
-Google Calendar manual sync endpoint:
-- `POST http://localhost:4000/api/promotions/sync-google-calendar`
+# Start dev server
+npm run dev
+```
 
-## Project structure
+Frontend will be live at: **http://localhost:8080**
 
-- `src/` – React app (pages, components, hooks)
-- `python-backend/` - FastAPI backend and ML forecasting
-- `server/scripts/` - MongoDB seed script
-- `docs/` – Architecture and workflow docs
+---
 
-## Docs
+## 📊 Data Setup
 
-- `docs/AI_AND_ML_IN_RGM.md` – Where AI/ML is used and where it’s ready for more
-- `docs/COMPLETE_ARCHITECTURE.md` – Full architecture overview
-- `docs/TECH_ARCHITECTURE.md` – Tech stack and “what for which”
-- `docs/WORKFLOW.md` – User and data flow
+The system uses **MongoDB** storing these collections:
 
+| Collection | Purpose |
+|---|---|
+| `products` | Product catalog with pricing & elasticity |
+| `pricing_records` | Historical price/revenue/profit data (ML training) |
+| `promotions` | Historical promotion performance (ML training) |
+| `demand_forecasts` | Historical + ML-generated demand forecasts |
+| `assortment_data` | SKU performance & add/keep/delist data |
+| `event_calendar` | Upcoming events from Google Calendar sync |
+
+### Seed demo data
+```bash
+python seed_data.py
+# OR via API endpoint:
+curl -X POST http://localhost:4000/api/seed
+```
+
+---
+
+## 🔌 API Endpoints Reference
+
+### Core
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/health` | Backend health + DB connectivity + ML status |
+| GET | `/api/stats` | Document counts per collection |
+| GET | `/api/dashboard/summary` | All KPIs in a single request |
+
+### Products
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/products` | List all products |
+| POST | `/api/products` | Create a product |
+| PUT | `/api/products/{id}` | Update a product |
+| PATCH | `/api/products/{id}/price` | Update price only |
+| DELETE | `/api/products/{id}` | Delete a product |
+
+### Pricing
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/pricing-records` | Historical pricing data |
+| GET | `/api/pricing/insight` | ML pricing recommendations |
+
+### Promotions
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/promotions` | Historical promotions |
+| POST | `/api/promotions` | Create a promotion |
+| DELETE | `/api/promotions/{id}` | Delete a promotion |
+| GET | `/api/promotions/recommendation` | ML recommendation |
+| POST | `/api/promotions/simulate` | Simulate a scenario |
+| GET | `/api/promotions/upcoming` | Upcoming events |
+| POST | `/api/promotions/sync-google-calendar` | Sync calendar |
+
+### Forecasting
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/forecasts?productId=...` | Demand forecasts |
+| POST | `/api/forecasts/generate` | Generate ML forecast |
+
+### Assortment
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/assortment` | SKU recommendations (ML-enhanced) |
+
+---
+
+## 🤖 ML Models
+
+All ML features require sufficient historical data:
+
+| Feature | Model | Min Training Data |
+|---|---|---|
+| **Demand Forecasting** | Ridge Regression + Polynomial Features | 2 historical points |
+| **Pricing** | Random Forest Regressor | 8 pricing records |
+| **Promotions** | Random Forest (ROI + Lift + Profit + Loss) | 5 promotions |
+| **Assortment** | Random Forest Classifier | 6 assortment rows, 2 classes |
+
+Run `python seed_data.py` to populate sufficient training data for all ML models.
+
+---
+
+## ⚙️ Environment Variables
+
+Edit `my-essential-tool-main/python-backend/.env`:
+
+```env
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/rgm_tool_prod
+MONGODB_DB=rgm_tool_prod
+PORT=4000
+VITE_API_BASE_URL=http://localhost:4000
+GOOGLE_CALENDAR_IDS=en.indian#holiday@group.v.calendar.google.com
+GOOGLE_CALENDAR_API_KEY=<your-google-api-key>
+GOOGLE_CALENDAR_SYNC_ON_READ=true
+```
+
+Edit `my-essential-tool-main/.env` (or `.env.local`):
+```env
+VITE_API_BASE_URL=http://localhost:4000
+```

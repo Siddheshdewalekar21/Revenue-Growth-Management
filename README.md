@@ -11,8 +11,6 @@
 
 **An AI-driven, full-stack platform for smarter pricing, promotions, assortment, and demand forecasting decisions.**
 
-[Features](#-features) · [Tech Stack](#-tech-stack) · [Getting Started](#-getting-started) · [Project Structure](#-project-structure) · [Screenshots](#-dashboard-pages) · [API Docs](#-api-reference)
-
 </div>
 
 ---
@@ -34,14 +32,15 @@ This platform brings all four into **one AI-powered dashboard** — with machine
 
 ## ✨ Features
 
-- 📊 **Executive Overview** — Live KPI cards (Avg Price, Margin, Revenue, Growth) + Revenue by Category chart
-- 💰 **Pricing Dashboard** — AI insight, price elasticity analysis, competitor pricing comparison, action recommendations
-- 🎪 **Promotion Simulator** — Configure discount %, duration, channel, budget → get predicted ROI, revenue lift, cannibalization risk **before running the promotion**
+- 📊 **Executive Dashboard** — Live KPI cards (Revenue, Net Profit, Loss, Active Promos) + category revenue chart + DB health
+- 💰 **Pricing Dashboard** — AI pricing insight, price elasticity chart, competitor comparison, sortable product table with detail modals, CSV export
+- 🎪 **Promotion Simulator** — Configure discount %, duration, channel, budget → predict ROI, lift, cannibalization **before spending a penny**
 - 📅 **Google Calendar Integration** — Sync upcoming holidays/events to plan promotions around real-world calendar
-- 📦 **Assortment Analysis** — SKU performance scatter matrix, category mix, AI-driven Add / Keep / Review / Delist recommendations with confidence scores
-- 📈 **Demand Forecasting** — ML-based demand prediction, Actual vs Forecast chart, seasonality index, trend decomposition, MAPE/RMSE accuracy metrics
+- 📦 **Assortment Analysis** — SKU performance scatter matrix, category mix pie chart, ML-driven Add / Keep / Review / Delist with confidence scores
+- 📈 **Demand Forecasting** — ML-based demand prediction, Actual vs Forecast chart, seasonality index, accuracy gauge
 - 🤖 **AI Assistant** — Floating chat widget available on every page
-- 🔄 **ML ↔ Rule-based fallback** — All AI features gracefully fall back to data-driven logic when ML models are not yet trained
+- 🔄 **ML ↔ Rule-based fallback** — All AI features gracefully fall back to data-driven logic when training data is insufficient
+- 🗄️ **Seed DB button** — Repopulate the database with rich demo data in one click from the dashboard
 - 🔐 **Auth** — Session-based authentication with protected routes
 
 ---
@@ -49,236 +48,344 @@ This platform brings all four into **one AI-powered dashboard** — with machine
 ## 🛠 Tech Stack
 
 ### Frontend
-| Technology | Purpose |
+| Technology | Role |
 |---|---|
-| **React 18 + TypeScript** | UI framework |
-| **Vite** | Build tool & dev server |
-| **Tailwind CSS** | Styling |
-| **shadcn/ui + Radix UI** | Component library |
-| **TanStack Query (React Query)** | Data fetching & caching |
-| **Recharts** | Charts & visualizations |
-| **React Router v6** | Client-side routing |
-| **Framer Motion** | Animations |
+| React 18 + TypeScript | UI framework |
+| Vite | Build tool & dev server |
+| Tailwind CSS + shadcn/ui | Styling & component library |
+| TanStack Query (React Query) | Data fetching & caching |
+| Recharts | Charts & data visualizations |
+| React Router v6 | Client-side routing |
+| Framer Motion | Animations |
 
 ### Backend
-| Technology | Purpose |
+| Technology | Role |
 |---|---|
-| **FastAPI (Python)** | REST API server |
-| **pymongo** | MongoDB client |
-| **scikit-learn** | ML models (pricing, promotions, assortment, forecasting) |
-| **uvicorn** | ASGI server |
-| **python-dotenv** | Environment configuration |
+| FastAPI (Python) | REST API server |
+| Uvicorn | ASGI production server |
+| pymongo | MongoDB driver |
+| scikit-learn | ML models |
+| python-dotenv | Environment configuration |
 
 ### Database & Services
-| Technology | Purpose |
+| Technology | Role |
 |---|---|
-| **MongoDB** | Primary database (`rgm_tool_prod`) |
-| **Google Calendar API** | Sync upcoming events/holidays for promotion planning |
+| MongoDB (Atlas or local) | Primary database |
+| Google Calendar API | Sync events for promotion planning |
 
 ---
 
-## 🏗 Project Structure
+## 📋 Prerequisites
 
-```
-Revenue-Growth-Management-RGM-System/
-│
-├── my-essential-tool-main/          # Main application
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Index.tsx            # Executive Overview dashboard
-│   │   │   ├── Pricing.tsx          # Pricing analysis
-│   │   │   ├── Promotions.tsx       # Promotion simulator
-│   │   │   ├── Assortment.tsx       # Assortment analysis
-│   │   │   ├── Forecasting.tsx      # Demand forecasting
-│   │   │   └── Auth.tsx             # Login page
-│   │   ├── components/
-│   │   │   ├── KPICard.tsx          # Reusable KPI metric card
-│   │   │   ├── AppSidebar.tsx       # Navigation sidebar
-│   │   │   ├── AIAssistant.tsx      # Floating AI chat widget
-│   │   │   └── ProtectedLayout.tsx  # Auth guard wrapper
-│   │   └── hooks/
-│   │       └── useAuth.tsx          # Authentication context
-│   │
-│   ├── python-backend/
-│   │   ├── main.py                  # FastAPI app + all REST endpoints
-│   │   ├── ml_pricing.py            # ML pricing recommendation model
-│   │   ├── ml_promotion.py          # ML promotion simulation model
-│   │   ├── ml_assortment.py         # ML assortment classification model
-│   │   ├── ml_forecast.py           # ML demand forecasting model
-│   │   ├── model_monitoring.py      # Model performance tracking
-│   │   └── requirements.txt
-│   │
-│   ├── .env                         # Environment variables
-│   └── package.json
-│
-├── playground-1.mongodb.js          # Sample data seed scripts
-├── playground-2.mongodb.js
-├── start.bat                        # One-click startup script
-└── README.md
-```
+Make sure the following are installed **before** starting:
+
+| Tool | Minimum Version | Download |
+|---|---|---|
+| **Node.js** | v18+ | https://nodejs.org/ |
+| **Python** | 3.10+ | https://www.python.org/ |
+| **MongoDB** | Atlas (cloud) or 7.0 local | https://www.mongodb.com/ |
+| **Git** | any | https://git-scm.com/ |
+
+> **Windows users:** When installing Python, tick **"Add Python to PATH"**.
 
 ---
 
-## ⚡ Getting Started
+## ⚡ Setup Guide
 
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) v18+
-- [Python](https://www.python.org/) 3.10+
-- [MongoDB](https://www.mongodb.com/try/download/community) running locally on port `27017`
-
----
-
-### 1. Clone the repository
+### Step 1 — Clone the repository
 
 ```bash
 git clone https://github.com/Siddheshdewalekar21/Revenue-Growth-Management.git
-cd Revenue-Growth-Management/my-essential-tool-main
+cd Revenue-Growth-Management
 ```
 
 ---
 
-### 2. Set up environment variables
+### Step 2 — Configure environment variables
 
-Copy `.env` and fill in your values (defaults work for local dev):
+All configuration lives in one `.env` file inside `my-essential-tool-main/`:
+
+```bash
+# Open the file (it already exists)
+# my-essential-tool-main/python-backend/.env
+```
+
+Edit these values:
 
 ```env
-# MongoDB
+# ── MongoDB ─────────────────────────────────────────────
+# Atlas (cloud) — recommended:
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/rgm_tool_prod
+
+# OR local MongoDB:
 MONGODB_URI=mongodb://127.0.0.1:27017
+
 MONGODB_DB=rgm_tool_prod
 
-# Backend
+# ── Backend ─────────────────────────────────────────────
 PORT=4000
 
-# Frontend
+# ── Frontend ────────────────────────────────────────────
 VITE_API_BASE_URL=http://localhost:4000
 
-# Google Calendar (optional — for Promotions calendar sync)
-GOOGLE_CALENDAR_IDS=your-calendar-id@group.calendar.google.com
-GOOGLE_CALENDAR_API_KEY=your-google-api-key
+# ── Google Calendar (optional) ──────────────────────────
+# Adds Indian holidays to the Promotions calendar view
+GOOGLE_CALENDAR_IDS=en-gb.indian#holiday@group.v.calendar.google.com
+GOOGLE_CALENDAR_API_KEY=your-google-api-key-here
 GOOGLE_CALENDAR_SYNC_ON_READ=true
 ```
 
+> **MongoDB Atlas users:** The default `.env` already points to a shared demo cluster. Change the URI to your own project if needed.
+
 ---
 
-### 3. Install frontend dependencies
+### Step 3 — Choose your setup method
 
-```bash
-npm install
+---
+
+#### 🟢 Option A — One-click Windows setup *(easiest)*
+
+Simply double-click the batch scripts in the **root** folder:
+
+```
+1. Double-click  setup.bat       ← installs all dependencies (run once)
+2. Double-click  start.bat       ← starts backend + frontend + seeds DB
+```
+
+That's it. Both servers will start in the same window.
+
+To restart **without** re-seeding the database:
+```
+Double-click  start-no-seed.bat
 ```
 
 ---
 
-### 4. Set up Python backend
+#### 🔵 Option B — Single npm command
 
-```bash
+```powershell
+cd my-essential-tool-main
+
+# First time — install Node deps + create Python venv + install Python deps
+npm install
 cd python-backend
 python -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+cd ..
 
-# Windows
+# Start everything (seeds DB + backend + frontend)
+npm run dev:all
+
+# Start everything WITHOUT re-seeding
+npm run dev:all:no-seed
+```
+
+---
+
+#### 🟡 Option C — Manual (two terminals)
+
+**Terminal 1 — Backend**
+```powershell
+cd my-essential-tool-main/python-backend
+
+# First time only — create virtual environment
+python -m venv .venv
 .venv\Scripts\activate
 
-# Mac/Linux
-source .venv/bin/activate
-
+# First time only — install Python packages
 pip install -r requirements.txt
+
+# Start the API server
+uvicorn main:app --host 0.0.0.0 --port 4000 --reload
 ```
 
----
+**Terminal 2 — Frontend**
+```powershell
+cd my-essential-tool-main
 
-### 5. Seed the database with sample data
+# First time only
+npm install
 
-Open MongoDB Compass or `mongosh` and run the playground scripts:
-
-```bash
-mongosh "mongodb://127.0.0.1:27017/rgm_tool_prod" ../playground-1.mongodb.js
-```
-
----
-
-### 6. Start the application
-
-**Option A — One command (recommended):**
-```bash
-# From the my-essential-tool-main directory
-npm run dev:all
-```
-
-**Option B — Manually (two terminals):**
-
-Terminal 1 — Backend:
-```bash
-cd python-backend
-python -m uvicorn main:app --host 0.0.0.0 --port 4000 --reload
-```
-
-Terminal 2 — Frontend:
-```bash
+# Start Vite dev server
 npm run dev
 ```
 
 ---
 
-### 7. Open in browser
+### Step 4 — Seed the database
 
-```
-http://localhost:5173
+The database needs demo data for ML models to work. You have **3 ways** to seed it:
+
+#### Option A — Seed button on Dashboard *(easiest)*
+Open the app → click the **"Seed DB"** button on the top-right of the dashboard.
+
+#### Option B — Python script
+```powershell
+cd my-essential-tool-main/python-backend
+.venv\Scripts\python seed_data.py
 ```
 
-Log in with any email and password (demo mode). FastAPI docs available at `http://localhost:4000/docs`.
+#### Option C — Node.js script (used by `dev:all`)
+```powershell
+cd my-essential-tool-main
+npm run seed:mongo
+```
+
+#### Option D — API endpoint
+```bash
+curl -X POST http://localhost:4000/api/seed
+```
+
+> The Python `seed_data.py` generates the **richest dataset** — 15 products, 180 pricing records, 30 promotions, 360 demand forecasts, 30+ assortment rows — fully satisfying all ML model training requirements.
 
 ---
 
-## 📸 Dashboard Pages
+### Step 5 — Open in browser
 
-### 🏠 Executive Overview
-> Bird's-eye view of Avg Price, Avg Margin, Total Revenue, and Avg Growth with a Revenue by Category chart.
+| Service | URL |
+|---|---|
+| **Frontend App** | http://localhost:8080 |
+| **Backend API Docs** | http://localhost:4000/docs |
+| **Health Check** | http://localhost:4000/api/health |
 
-### 💰 Pricing Dashboard
-> Price elasticity chart, competitor comparison, AI pricing insight, and product-level action recommendations (Increase / Hold / Decrease).
+Log in with the credentials in your MongoDB `users` collection (or register via the Auth page).
 
-### 🎪 Promotion Simulator
-> Configure a promotion scenario and instantly predict ROI, revenue lift %, cannibalization risk, and incremental profit — before spending a rupee.
+---
 
-### 📦 Assortment Analysis
-> SKU performance scatter matrix (Revenue vs Growth), category mix pie chart, and AI-powered Add / Keep / Review / Delist recommendations.
+## 📁 Project Structure
 
-### 📈 Demand Forecasting
-> ML demand forecast with Actual vs Predicted chart, MAPE/RMSE accuracy, seasonality index, and trend decomposition.
+```
+Revenue-Growth-Management-RGM-System/
+│
+├── setup.bat                        ← Windows: run once to install everything
+├── start.bat                        ← Windows: start all services (with seed)
+├── start-no-seed.bat                ← Windows: start all services (no seed)
+├── verify-setup.bat                 ← Windows: check environment health
+│
+└── my-essential-tool-main/          ← Main application root
+    │
+    ├── package.json                 ← npm scripts
+    ├── .env                         ← (create from .env.example)
+    │
+    ├── scripts/
+    │   └── run-all.mjs              ← Powers `npm run dev:all`
+    │
+    ├── server/scripts/
+    │   └── seedMongo.js             ← Node.js seed (used by dev:all)
+    │
+    ├── src/                         ← React frontend
+    │   ├── pages/
+    │   │   ├── Index.tsx            ← Executive dashboard
+    │   │   ├── Pricing.tsx          ← Pricing analysis
+    │   │   ├── Promotions.tsx       ← Promotion simulator
+    │   │   ├── Assortment.tsx       ← Assortment analysis
+    │   │   ├── Forecasting.tsx      ← Demand forecasting
+    │   │   └── Auth.tsx             ← Login / register
+    │   │
+    │   ├── components/
+    │   │   ├── KPICard.tsx          ← Reusable KPI metric card
+    │   │   ├── AppSidebar.tsx       ← Navigation sidebar
+    │   │   ├── AIAssistant.tsx      ← Floating AI chat widget
+    │   │   └── ProtectedLayout.tsx  ← Auth guard
+    │   │
+    │   └── hooks/
+    │       └── useAuth.tsx          ← Authentication context
+    │
+    └── python-backend/              ← FastAPI backend
+        ├── main.py                  ← All REST endpoints
+        ├── ml_pricing.py            ← Pricing ML model (RandomForest)
+        ├── ml_promotion.py          ← Promotion ML model (RandomForest)
+        ├── ml_assortment.py         ← Assortment classifier (RandomForest)
+        ├── ml_forecast.py           ← Demand forecasting (Ridge regression)
+        ├── seed_data.py             ← Python rich data seed script
+        ├── model_monitoring.py      ← Model drift & performance tracking
+        ├── management_api.py        ← A/B testing & rollout control APIs
+        ├── requirements.txt
+        └── .venv/                   ← Python virtual environment (git-ignored)
+```
+
+---
+
+## 🧩 npm Scripts Reference
+
+Run all commands from the `my-essential-tool-main/` directory.
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Start Vite frontend only (port 8080) |
+| `npm run dev:all` | **Seed DB + start backend + start frontend** (all-in-one) |
+| `npm run dev:all:no-seed` | Start backend + frontend, **skip seeding** |
+| `npm run server` | Start Python FastAPI backend only (port 4000) |
+| `npm run seed:mongo` | Run Node.js MongoDB seed script |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint check |
+| `npm run test` | Run Vitest tests |
 
 ---
 
 ## 📡 API Reference
 
-All endpoints are served at `http://localhost:4000`. Full Swagger docs at **`/docs`**.
+All endpoints served at `http://localhost:4000`. Interactive docs at **`/docs`**.
 
+### System
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/health` | Backend health + ML capability flags |
-| `GET` | `/api/products` | All products |
-| `GET` | `/api/pricing-records` | Historical pricing records |
-| `GET` | `/api/pricing/insight` | AI pricing recommendation |
-| `GET` | `/api/promotions` | All promotions |
-| `GET` | `/api/promotions/upcoming` | Upcoming calendar events with promotion context |
-| `GET` | `/api/promotions/recommendation` | AI promotion strategy recommendation |
-| `POST` | `/api/promotions/simulate` | Simulate a promotion scenario |
-| `POST` | `/api/promotions/sync-google-calendar` | Sync Google Calendar events |
-| `GET` | `/api/assortment` | Assortment data with ML recommendations |
-| `GET` | `/api/forecasts?productId=<id>` | Demand forecasts for a product |
-| `POST` | `/api/forecasts/generate` | Run ML forecast generation |
+| `GET` | `/api/health` | Health check + DB connectivity + ML status |
+| `GET` | `/api/stats` | Document counts per collection |
+| `GET` | `/api/dashboard/summary` | All KPIs in a single request |
+| `POST` | `/api/seed` | Re-seed database with demo data |
+
+### Products
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/products` | List all products |
+| `POST` | `/api/products` | Create a product |
+| `PUT` | `/api/products/{id}` | Update a product |
+| `PATCH` | `/api/products/{id}/price` | Update price only |
+| `DELETE` | `/api/products/{id}` | Delete a product |
+
+### Pricing
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/pricing-records` | Historical pricing data |
+| `GET` | `/api/pricing/insight` | ML pricing recommendations |
+
+### Promotions
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/promotions` | Historical promotions |
+| `POST` | `/api/promotions` | Create a promotion |
+| `DELETE` | `/api/promotions/{id}` | Delete a promotion |
+| `GET` | `/api/promotions/recommendation` | ML recommendation |
+| `POST` | `/api/promotions/simulate` | Simulate a scenario |
+| `GET` | `/api/promotions/upcoming` | Upcoming calendar events |
+| `POST` | `/api/promotions/sync-google-calendar` | Sync Google Calendar |
+
+### Forecasting
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/forecasts?productId=...` | Demand forecasts for a product |
+| `POST` | `/api/forecasts/generate` | Generate ML forecast |
+
+### Assortment
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/assortment` | SKU data with ML recommendations |
 
 ---
 
-## 🧠 ML Models
+## 🤖 ML Models
 
-All ML models use **scikit-learn** and are trained on-demand from the MongoDB data. If insufficient data is available, the system **automatically falls back** to rule-based logic — so the platform always works.
+All models are trained **on-demand** from MongoDB data. If insufficient data exists, the system **automatically falls back** to rule-based logic — so the app always works.
 
-| Module | Algorithm | Inputs | Outputs |
-|---|---|---|---|
-| Pricing | Gradient Boosting / Linear Regression | Price, elasticity, competitor price, history | Recommended price, predicted profit/loss |
-| Promotion | Random Forest Regressor | Discount %, duration, channel, category | Predicted ROI, revenue lift, cannibalization |
-| Assortment | Random Forest Classifier | Revenue, growth, market share, mix % | Add / Keep / Review / Delist + confidence |
-| Forecasting | Time-series decomposition + ML | Historical demand, seasonality, trend | Predicted demand (N months ahead) |
+| Module | Algorithm | Minimum Data Needed |
+|---|---|---|
+| **Pricing** | Random Forest Regressor | 8+ pricing records with `units_sold` |
+| **Promotions** | Random Forest (ROI + Lift + Profit + Loss) | 5+ promotions with `discount_pct` & `duration_days` |
+| **Assortment** | Random Forest Classifier | 6+ rows with at least 2 recommendation classes |
+| **Forecasting** | Ridge Regression + Polynomial Features | 2+ historical demand points per product |
+
+> Run `python seed_data.py` to populate data that satisfies **all** ML model requirements at once.
 
 ---
 
@@ -286,22 +393,65 @@ All ML models use **scikit-learn** and are trained on-demand from the MongoDB da
 
 | Collection | Description |
 |---|---|
-| `products` | Product master — name, category, price, margin, elasticity |
-| `pricing_records` | Historical pricing — revenue, units sold, competitor price per date |
-| `promotions` | Promotion history — discount, ROI, revenue lift, cannibalization |
+| `products` | Product catalog — name, category, prices, margin, elasticity, unit cost |
+| `pricing_records` | Historical pricing — revenue, units sold, profit, loss, competitor price |
+| `promotions` | Promotion history — discount, duration, ROI, lift, cannibalization |
 | `assortment_data` | SKU channel performance — revenue, growth, market share, recommendation |
 | `demand_forecasts` | Actual + ML predicted demand per product per month |
-| `event_calendar` | Upcoming events synced from Google Calendar |
+| `event_calendar` | Upcoming events from Google Calendar sync |
 
 ---
 
-## 🤝 Contributing
+## 🔧 Troubleshooting
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m "Add your feature"`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a Pull Request
+### ❌ "Backend not reachable" on Dashboard
+- Make sure the Python backend is running: `uvicorn main:app --port 4000 --reload`
+- Check the `.env` file has `VITE_API_BASE_URL=http://localhost:4000`
+- Visit http://localhost:4000/api/health — if it shows JSON, the backend is working
+
+### ❌ "Failed to activate virtual environment"
+```powershell
+# PowerShell execution policy issue — run:
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Then retry:
+cd my-essential-tool-main/python-backend
+.venv\Scripts\activate
+```
+
+### ❌ ML features showing "ML Unavailable"
+The ML models need enough training data. Run the seed script:
+```powershell
+cd my-essential-tool-main/python-backend
+.venv\Scripts\python seed_data.py
+```
+Or click the **"Seed DB"** button on the dashboard.
+
+### ❌ `npm run dev:all` fails at seed step
+The Node seed script requires a valid `MONGODB_URI` in `.env`. Check:
+1. `.env` exists in `my-essential-tool-main/`
+2. `MONGODB_URI` is correct and MongoDB is reachable
+3. If using Atlas, ensure your IP is whitelisted
+
+### ❌ Port already in use
+```powershell
+# Kill process on port 4000 (backend)
+netstat -ano | findstr :4000
+taskkill /PID <pid> /F
+
+# Kill process on port 8080 (frontend)
+netstat -ano | findstr :8080
+taskkill /PID <pid> /F
+```
+
+### ❌ `ModuleNotFoundError` in Python
+Virtual environment not active or packages not installed:
+```powershell
+cd my-essential-tool-main/python-backend
+python -m venv .venv          # recreate if needed
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
 
 ---
 
