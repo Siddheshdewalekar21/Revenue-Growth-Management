@@ -95,6 +95,44 @@ const Pricing = () => {
   const avgPriceIndex = pricingRecords?.length
     ? (pricingRecords.reduce((s, r) => s + Number(r.price_index || 0), 0) / pricingRecords.length).toFixed(1) : "0.0";
 
+  // ── Dynamic change labels derived from real pricingRecords ────────────────
+  const pricingChangeLabels = useMemo(() => {
+    if (!pricingRecords || pricingRecords.length < 2) {
+      return { revMoM: "vs prior period", priceChg: "vs prior period", marginChg: "vs prior period" };
+    }
+    // Sort by effective_date and split into two halves
+    const sorted = [...pricingRecords].sort((a, b) =>
+      String(a.effective_date || "").localeCompare(String(b.effective_date || ""))
+    );
+    const mid = Math.floor(sorted.length / 2);
+    const h1 = sorted.slice(0, mid);
+    const h2 = sorted.slice(mid);
+
+    // Revenue MoM (H1 vs H2)
+    const h1Rev = h1.reduce((s, r) => s + Number(r.revenue || 0), 0);
+    const h2Rev = h2.reduce((s, r) => s + Number(r.revenue || 0), 0);
+    const revMoMPct = h1Rev > 0 ? ((h2Rev - h1Rev) / h1Rev * 100).toFixed(1) : null;
+    const revMoM = revMoMPct !== null
+      ? `${Number(revMoMPct) >= 0 ? "+" : ""}${revMoMPct}% H1→H2`
+      : "vs prior period";
+
+    // Avg price change (H1 vs H2 using pricing records price field)
+    const h1AvgP = h1.length ? h1.reduce((s, r) => s + Number(r.price || 0), 0) / h1.length : 0;
+    const h2AvgP = h2.length ? h2.reduce((s, r) => s + Number(r.price || 0), 0) / h2.length : 0;
+    const priceChgPct = h1AvgP > 0 ? ((h2AvgP - h1AvgP) / h1AvgP * 100).toFixed(1) : null;
+    const priceChg = priceChgPct !== null
+      ? `${Number(priceChgPct) >= 0 ? "+" : ""}${priceChgPct}% H1→H2`
+      : "vs prior period";
+
+    // Avg margin change (H1 vs H2 using margin_pct field)
+    const h1Margin = h1.length ? h1.reduce((s, r) => s + Number(r.margin_pct || 0), 0) / h1.length : 0;
+    const h2Margin = h2.length ? h2.reduce((s, r) => s + Number(r.margin_pct || 0), 0) / h2.length : 0;
+    const marginDiff = (h2Margin - h1Margin).toFixed(1);
+    const marginChg = `${Number(marginDiff) >= 0 ? "+" : ""}${marginDiff}pp H1→H2`;
+
+    return { revMoM, priceChg, marginChg };
+  }, [pricingRecords]);
+
   // Categories for filter
   const categories = useMemo(() => {
     const cats = new Set<string>((products || []).map((p: any) => p.category).filter(Boolean));
@@ -221,9 +259,9 @@ const Pricing = () => {
 
       {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <KPICard title="Avg Price" value={`$${avgPrice}`} change="+2.3% vs Q3" changeType="positive" icon={DollarSign} />
-        <KPICard title="Avg Margin" value={`${avgMargin}%`} change="+1.1pp" changeType="positive" icon={Percent} />
-        <KPICard title="Revenue" value={`$${(totalRevenue / 1000000).toFixed(1)}M`} change="+8.7% MoM" changeType="positive" icon={TrendingUp} />
+        <KPICard title="Avg Price" value={`$${avgPrice}`} change={pricingChangeLabels.priceChg} changeType={pricingChangeLabels.priceChg.startsWith("+") ? "positive" : "negative"} icon={DollarSign} />
+        <KPICard title="Avg Margin" value={`${avgMargin}%`} change={pricingChangeLabels.marginChg} changeType={pricingChangeLabels.marginChg.startsWith("+") ? "positive" : "negative"} icon={Percent} />
+        <KPICard title="Revenue" value={`$${(totalRevenue / 1000000).toFixed(1)}M`} change={pricingChangeLabels.revMoM} changeType={pricingChangeLabels.revMoM.startsWith("+") ? "positive" : "negative"} icon={TrendingUp} />
         <KPICard title="Net Profit" value={`$${(totalNetProfit / 1000000).toFixed(1)}M`} change="After losses" changeType="positive" icon={DollarSign} />
         <KPICard title="Loss" value={`$${(totalLoss / 1000).toFixed(0)}K`} change="Returns/shrinkage" changeType="negative" icon={TrendingDown} />
         <KPICard title="Price Index" value={`${avgPriceIndex}`} change="vs competitors" changeType="neutral" icon={Target} />

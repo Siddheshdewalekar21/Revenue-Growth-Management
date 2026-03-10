@@ -238,8 +238,8 @@ const Assortment = () => {
               key={rec}
               onClick={() => setRecommendationFilter(recommendationFilter === rec ? "all" : rec)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all ${recommendationFilter === rec
-                  ? RECOMMENDATION_BADGE_CLASSES[rec] || "border-primary/30 bg-primary/10 text-primary"
-                  : "border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted/60"
+                ? RECOMMENDATION_BADGE_CLASSES[rec] || "border-primary/30 bg-primary/10 text-primary"
+                : "border-border/50 bg-muted/30 text-muted-foreground hover:bg-muted/60"
                 }`}
             >
               <span className="font-bold">{count}</span> {rec.charAt(0).toUpperCase() + rec.slice(1)}
@@ -258,7 +258,7 @@ const Assortment = () => {
 
       {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <KPICard title="Total Revenue" value={`$${(totalRevenue / 1000000).toFixed(1)}M`} change="+14.2% YoY" changeType="positive" icon={Package} />
+        <KPICard title="Total Revenue" value={`$${(totalRevenue / 1000000).toFixed(1)}M`} change={`${Number(avgGrowth) >= 0 ? "+" : ""}${avgGrowth}% avg growth`} changeType={Number(avgGrowth) >= 0 ? "positive" : "negative"} icon={Package} />
         <KPICard title="Net Profit" value={`$${(totalNetProfit / 1000).toFixed(0)}K`} change="After losses" changeType="positive" icon={DollarSign} />
         <KPICard title="Loss" value={`$${(totalLoss / 1000).toFixed(0)}K`} change="Operational losses" changeType="negative" icon={TrendingDown} />
         <KPICard title="Avg Growth" value={`${avgGrowth}%`} change="Revenue growth" changeType={Number(avgGrowth) >= 0 ? "positive" : "negative"} icon={TrendingUp} />

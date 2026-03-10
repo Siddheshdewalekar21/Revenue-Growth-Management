@@ -572,6 +572,38 @@ def get_dashboard_summary():
       for cat, rev in sorted(category_revenue.items(), key=lambda x: -x[1])
     ]
 
+    # ── Period-comparison metrics (H1 vs H2) ─────────────────────────────────
+    # Sort pricing records chronologically and split into two halves
+    def _pct_change(old: float, new: float) -> float:
+      return round((new - old) / max(1.0, abs(old)) * 100, 1) if old != 0 else 0.0
+
+    sorted_records = sorted(pricing_records, key=lambda r: str(r.get("effective_date", "")))
+    mid = len(sorted_records) // 2
+    if mid >= 2:
+      h1 = sorted_records[:mid]
+      h2 = sorted_records[mid:]
+      h1_rev    = sum(float(r.get("revenue") or 0) for r in h1)
+      h2_rev    = sum(float(r.get("revenue") or 0) for r in h2)
+      h1_profit = sum(float(r.get("net_profit") or 0) for r in h1)
+      h2_profit = sum(float(r.get("net_profit") or 0) for r in h2)
+      h1_loss   = sum(float(r.get("loss_amount") or 0) for r in h1)
+      h2_loss   = sum(float(r.get("loss_amount") or 0) for r in h2)
+      revenue_change_pct = _pct_change(h1_rev, h2_rev)
+      profit_change_pct  = _pct_change(h1_profit, h2_profit)
+      loss_change_pct    = _pct_change(h1_loss, h2_loss)
+    else:
+      revenue_change_pct = profit_change_pct = loss_change_pct = 0.0
+
+    # Promo lift: compare first-half promos vs second-half promos chronologically
+    sorted_promos = sorted(promotions, key=lambda p: str(p.get("start_date", "")))
+    pmid = len(sorted_promos) // 2
+    if pmid >= 1:
+      p1_lift = sum(float(p.get("revenue_lift_pct") or 0) for p in sorted_promos[:pmid]) / pmid
+      p2_lift = sum(float(p.get("revenue_lift_pct") or 0) for p in sorted_promos[pmid:]) / max(1, len(sorted_promos) - pmid)
+      lift_change_pct = round(p2_lift - p1_lift, 1)
+    else:
+      lift_change_pct = 0.0
+
     return {
       "product_count": product_count,
       "avg_price": avg_price,
@@ -582,6 +614,10 @@ def get_dashboard_summary():
       "total_revenue": round(total_revenue, 2),
       "total_net_profit": round(total_net_profit, 2),
       "total_loss": round(total_loss, 2),
+      "revenue_change_pct": revenue_change_pct,
+      "profit_change_pct": profit_change_pct,
+      "loss_change_pct": loss_change_pct,
+      "lift_change_pct": lift_change_pct,
       "assortment_add": add_count,
       "assortment_delist": delist_count,
       "assortment_keep": keep_count,

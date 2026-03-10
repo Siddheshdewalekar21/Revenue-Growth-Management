@@ -154,6 +154,13 @@ const Index = () => {
   const netProfitMillions = summary ? (Number(summary.total_net_profit) / 1_000_000).toFixed(1) : "—";
   const lossK = summary ? (Number(summary.total_loss) / 1_000).toFixed(0) : "—";
 
+  // Dynamic change labels computed from real H1 vs H2 data
+  const fmtChange = (pct: number, suffix = "H1→H2") =>
+    pct === 0 ? `—` : `${pct > 0 ? "+" : ""}${pct}% ${suffix}`;
+  const revenueChangeLabel = summary ? fmtChange(summary.revenue_change_pct) : "Loading…";
+  const profitChangeLabel = summary ? fmtChange(summary.profit_change_pct) : "Loading…";
+  const lossChangeLabel = summary ? fmtChange(summary.loss_change_pct) : "Loading…";
+
   return (
     <div className="space-y-6">
       {/* ─── Header ─── */}
@@ -196,8 +203,8 @@ const Index = () => {
               key={key}
               variant="outline"
               className={`text-[10px] gap-1 ${enabled
-                  ? "bg-primary/10 text-primary border-primary/30"
-                  : "text-muted-foreground/50 border-border/40"
+                ? "bg-primary/10 text-primary border-primary/30"
+                : "text-muted-foreground/50 border-border/40"
                 }`}
             >
               <Zap className="h-2.5 w-2.5" />
@@ -247,22 +254,22 @@ const Index = () => {
         <KPICard
           title="Total Revenue"
           value={summaryLoading ? "…" : `$${revenueMillions}M`}
-          change="+14.2% YoY"
-          changeType="positive"
+          change={summaryLoading ? "Loading…" : revenueChangeLabel}
+          changeType={summary?.revenue_change_pct >= 0 ? "positive" : "negative"}
           icon={DollarSign}
         />
         <KPICard
           title="Net Profit"
           value={summaryLoading ? "…" : `$${netProfitMillions}M`}
-          change="After all deductions"
-          changeType="positive"
+          change={summaryLoading ? "Loading…" : profitChangeLabel}
+          changeType={summary?.profit_change_pct >= 0 ? "positive" : "negative"}
           icon={TrendingUp}
         />
         <KPICard
           title="Total Loss"
           value={summaryLoading ? "…" : `$${lossK}K`}
-          change="Returns & shrinkage"
-          changeType="negative"
+          change={summaryLoading ? "Loading…" : lossChangeLabel}
+          changeType={summary?.loss_change_pct <= 0 ? "positive" : "negative"}
           icon={Percent}
         />
         <KPICard

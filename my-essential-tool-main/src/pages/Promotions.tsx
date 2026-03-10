@@ -178,6 +178,19 @@ const Promotions = () => {
   const promotionRecommendationIsMl = promotionRecommendation?.source === "ml_model";
   const activePromos = promotions?.filter((p: any) => p.status === "active").length || 0;
 
+  // Dynamic lift change: compare first-half vs second-half promos chronologically
+  const liftChangeLabel = useMemo(() => {
+    if (!promotions || promotions.length < 4) return "vs prior period";
+    const sorted = [...promotions].sort((a, b) =>
+      String(a.start_date || "").localeCompare(String(b.start_date || ""))
+    );
+    const mid = Math.floor(sorted.length / 2);
+    const h1Lift = sorted.slice(0, mid).reduce((s, p) => s + Number(p.revenue_lift_pct || 0), 0) / mid;
+    const h2Lift = sorted.slice(mid).reduce((s, p) => s + Number(p.revenue_lift_pct || 0), 0) / (sorted.length - mid);
+    const diff = (h2Lift - h1Lift).toFixed(1);
+    return `${Number(diff) >= 0 ? "+" : ""}${diff}pp H1→H2`;
+  }, [promotions]);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await queryClient.invalidateQueries({ queryKey: ["promotions"] });
@@ -331,7 +344,7 @@ const Promotions = () => {
       {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KPICard title="Avg ROI" value={`${avgROI}x`} change="Across all promos" changeType="neutral" icon={Target} />
-        <KPICard title="Avg Rev Lift" value={`${avgLift}%`} change="+3.2% vs prior year" changeType="positive" icon={TrendingUp} />
+        <KPICard title="Avg Rev Lift" value={`${avgLift}%`} change={liftChangeLabel} changeType={liftChangeLabel.startsWith("+") ? "positive" : "negative"} icon={TrendingUp} />
         <KPICard title="Promo Profit" value={`$${(totalPromoProfit / 1000).toFixed(0)}K`} change="Incremental" changeType="positive" icon={DollarSign} />
         <KPICard title="Promo Loss" value={`$${(totalPromoLoss / 1000).toFixed(0)}K`} change="Cannibalization/costs" changeType="negative" icon={Percent} />
         <KPICard

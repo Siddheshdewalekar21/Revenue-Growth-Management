@@ -7,7 +7,11 @@ Run with: python seed_data.py
 from __future__ import annotations
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# Ensure UTF-8 output on Windows (needed for emoji characters like ✅)
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
 from bson import ObjectId
 from dotenv import load_dotenv
 from pymongo import MongoClient, UpdateOne
@@ -49,7 +53,7 @@ def make_product(name, category, subcategory, region, channel,
         "price_elasticity": price_elasticity,
         "unit_cost": unit_cost,
         "units_sold_avg": units_sold_avg,
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
     }
 
 products_raw = [
